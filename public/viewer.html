@@ -65,7 +65,8 @@
     <button id="btn-fullscreen" class="icon-btn" title="Tela cheia"><span class="material-icons">fullscreen</span></button>
     <button id="btn-unmute"><span class="material-icons">volume_off</span></button>
   </div>
-  <video id="game-video" autoplay playsinline muted></video>
+  <!-- disableRemotePlayback stops Chromecast/AirPlay from adding extra buffering -->
+  <video id="game-video" autoplay playsinline muted disableRemotePlayback></video>
 </div><!-- #stream-area -->
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -380,6 +381,7 @@ socket.on('emulator:left', () => {
   _streamOk = false;
   _clearRetryTimer();
   _clearOfferWaitTimer();
+  if (_liveEdgeSyncId) { clearInterval(_liveEdgeSyncId); _liveEdgeSyncId = null; }
   const video = $('game-video');
   video.srcObject = null;
   if (pc) { pc.close(); pc = null; }
@@ -446,6 +448,27 @@ function _clearOfferWaitTimer () {
   if (_offerWaitTimer) { clearTimeout(_offerWaitTimer); _offerWaitTimer = null; }
 }
 
+// ── Live-edge sync — keeps the video glued to the real-time stream ────────────
+// WebRTC video elements accumulate jitter-buffer and fall behind over time.
+// Every 2 s we check if the playback is more than TARGET_BEHIND seconds behind
+// the buffer end; if so, snap forward so delay never grows.
+let _liveEdgeSyncId = null;
+const LIVE_BEHIND_MAX = 0.35;  // allow at most 350 ms of buffering
+const LIVE_TARGET     = 0.10;  // snap to 100 ms behind live edge
+
+function _startLiveEdgeSync (video) {
+  if (_liveEdgeSyncId) clearInterval(_liveEdgeSyncId);
+  _liveEdgeSyncId = setInterval(() => {
+    if (!video.srcObject || video.paused || !video.buffered.length) return;
+    const liveEnd = video.buffered.end(video.buffered.length - 1);
+    const behind  = liveEnd - video.currentTime;
+    if (behind > LIVE_BEHIND_MAX) {
+      video.currentTime = liveEnd - LIVE_TARGET;
+      console.log(`[LiveEdge] Snapped +${(behind - LIVE_TARGET).toFixed(2)}s`);
+    }
+  }, 2000);
+}
+
 // ── RTCPeerConnection setup ───────────────────────────────────────────────────
 function _initPeerConnection () {
 
@@ -453,18 +476,21 @@ function _initPeerConnection () {
 
   // When host stream arrives → play in video element
   pc.ontrack = (e) => {
-    console.log('[WebRTC] Track received');
+    console.log('[WebRTC] Track received:', e.track.kind);
     _streamOk = true;
     _clearRetryTimer();
     _clearOfferWaitTimer();
     $('btn-retry-stream').style.display = 'none';
+    // Always hide the overlay the moment any track arrives
+    $('overlay').style.display = 'none';
+    $('stream-status').textContent = `🟢 Transmitindo — P${mySlot}`;
+
     const video = $('game-video');
     const stream = e.streams[0] || new MediaStream([e.track]);
     if (video.srcObject !== stream) {
       video.srcObject = stream;
-      video.play().catch(() => {}); // autoplay policy might block; unmute button helps
-      $('stream-status').textContent = `🟢 Transmitindo — P${mySlot}`;
-      $('overlay').style.display = 'none';
+      video.play().catch(() => {});
+      _startLiveEdgeSync(video);
     }
   };
 

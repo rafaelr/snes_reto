@@ -198,8 +198,10 @@ let localBlobUrl  = null;
 let netCtrl       = null;
 
 // ── Audio interception (runs before EmulatorJS loads) ──────────────────────────────────────────
-// Intercept AudioContext creation and AudioNode.connect so ALL audio routed
-// to context.destination is ALSO routed to _ejsAudioDest (our stream sink).
+// Strategy: patch AudioContext constructor so _ejsAudioDest is created the
+// instant EJS's AudioContext is constructed — BEFORE any audioNode.connect()
+// calls happen.  The patched AudioNode.connect then mirrors every node that
+// feeds ctx.destination to also feed _ejsAudioDest, so all audio is captured.
 let _ejsAudioCtx       = null;  // the AudioContext EJS creates
 let _ejsAudioDest      = null;  // MediaStreamAudioDestinationNode
 let _origAudioConnect  = null;  // original AudioNode.prototype.connect
@@ -208,24 +210,31 @@ let _origAudioConnect  = null;  // original AudioNode.prototype.connect
   const OrigAC = window.AudioContext || window.webkitAudioContext;
   if (!OrigAC) return;
 
-  // 1) Capture the AudioContext when EJS constructs it
+  _origAudioConnect = AudioNode.prototype.connect;
+
+  // 1) Intercept AudioContext construction — create stream dest immediately
+  //    so the connect-patch below can mirror connections from frame 1.
   function PatchedAC () {
     const ctx = Reflect.construct(OrigAC, arguments, OrigAC);
-    if (!_ejsAudioCtx) { _ejsAudioCtx = ctx; console.log('[Audio] AudioContext captured'); }
+    if (!_ejsAudioCtx) {
+      _ejsAudioCtx = ctx;
+      try {
+        _ejsAudioDest = ctx.createMediaStreamDestination();
+        console.log('[Audio] AudioContext captured + stream dest created');
+      } catch (e) { console.warn('[Audio] could not create stream dest', e); }
+    }
     return ctx;
   }
   Object.setPrototypeOf(PatchedAC, OrigAC);
   PatchedAC.prototype = OrigAC.prototype;
   window.AudioContext = window.webkitAudioContext = PatchedAC;
 
-  // 2) Patch AudioNode.connect — mirror every src→destination connection to our sink
-  _origAudioConnect = AudioNode.prototype.connect;
+  // 2) Mirror every node→destination connection to our stream dest.
+  //    Use apply(this, arguments) to preserve exact call signature.
   AudioNode.prototype.connect = function (dest, outIdx, inIdx) {
-    const r = outIdx !== undefined
-      ? _origAudioConnect.call(this, dest, outIdx, inIdx !== undefined ? inIdx : 0)
-      : _origAudioConnect.call(this, dest);
-    if (_ejsAudioDest && dest === this.context.destination) {
-      try { _origAudioConnect.call(this, _ejsAudioDest, outIdx || 0, 0); } catch (_) {}
+    const r = _origAudioConnect.apply(this, arguments);
+    if (_ejsAudioDest && this.context && dest === this.context.destination) {
+      try { _origAudioConnect.call(this, _ejsAudioDest, 0, 0); } catch (_) {}
     }
     return r;
   };
@@ -243,60 +252,67 @@ const ICE_SERVERS = [
 ];
 
 function _ensureAudioDest () {
+  // _ejsAudioDest is now created eagerly inside PatchedAC.
+  // This function is kept as a fallback for the rare case where EJS somehow
+  // bypasses the constructor patch (e.g. loaded before our script ran).
   if (_ejsAudioDest) return;
-  const ctx = _ejsAudioCtx ||
-    (window.EJS_emulator && window.EJS_emulator.gameManager &&
-     window.EJS_emulator.gameManager.audioContext);
-  if (!ctx) { console.warn('[Audio] No AudioContext yet'); return; }
+  const ctx = _ejsAudioCtx
+    || (window.EJS_emulator?.gameManager?.audioContext);
+  if (!ctx) { console.warn('[Audio] No AudioContext yet — audio capture unavailable'); return; }
   _ejsAudioDest = ctx.createMediaStreamDestination();
-  console.log('[Audio] MediaStreamDestinationNode created');
-  // Retroactively hook the EJS master gain node if accessible
-  const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
+  console.log('[Audio] Fallback: MediaStreamDestinationNode created after game start');
+  // Retro-connect via master gain node if reachable
+  const gm = window.EJS_emulator?.gameManager;
   if (gm) {
     const master = gm.volumeNode || gm.volume || gm.gainNode || gm.masterGain;
-    if (master && master.connect) {
+    if (master?.connect) {
       try {
         _origAudioConnect.call(master, _ejsAudioDest);
-        console.log('[Audio] Retro-connected master gain to stream dest');
+        console.log('[Audio] Fallback: master gain retro-connected');
       } catch (e) { console.warn('[Audio] Retro-connect failed', e); }
     }
   }
 }
 
-function _captureCanvasStream () {
-  _ensureAudioDest();
-  if (_canvasStream) {
-    // If stream exists but still lacks audio, inject now
-    if (_canvasStream.getAudioTracks().length === 0 && _ejsAudioDest) {
-      _ejsAudioDest.stream.getAudioTracks().forEach(t => _canvasStream.addTrack(t));
-      console.log('[WebRTC] Late audio tracks injected');
-    }
-    return _canvasStream;
-  }
-  // Try multiple selectors — EmulatorJS may render directly or inside an iframe/div
-  const srcCanvas = document.querySelector('#game canvas')
+// Returns a fresh MediaStream containing: all video tracks from the canvas
+// stream + all audio tracks from the stream destination (if available).
+// Each call to _buildOfferStream gives a NEW MediaStream snapshot so that
+// adding audio tracks later has no effect on peers already connected.
+function _buildOfferStream () {
+  const video = _canvasStream ? _canvasStream.getVideoTracks() : [];
+  const audio = _ejsAudioDest ? _ejsAudioDest.stream.getAudioTracks() : [];
+  return new MediaStream([...video, ...audio]);
+}
+
+function _findEjsCanvas () {
+  // EmulatorJS renders into a <canvas> inside #game. Try multiple selectors in
+  // order of preference. The iframe path handles older EJS builds.
+  return document.querySelector('#game canvas')
     || document.querySelector('#game iframe')?.contentDocument?.querySelector('canvas')
     || document.querySelector('canvas');
-  if (!srcCanvas) return null;
+}
+
+function _captureCanvasStream () {
+  if (_canvasStream) return _canvasStream;
+
+  const srcCanvas = _findEjsCanvas();
+  if (!srcCanvas) { console.warn('[Video] EJS canvas not found yet'); return null; }
+
   try {
-    // Capture directly at the native framerate; quality/bitrate is controlled per-sender
-    _canvasStream = srcCanvas.captureStream(20);
-    if (_ejsAudioDest) {
-      _ejsAudioDest.stream.getAudioTracks().forEach(t => _canvasStream.addTrack(t));
-      console.log('[WebRTC] Stream ready — audio tracks:', _canvasStream.getAudioTracks().length);
-    } else {
-      console.warn('[WebRTC] Canvas stream ready but NO audio tracks yet');
-    }
-    console.log('[WebRTC] Canvas stream captured @20fps');
+    // captureStream(60): browser pushes a new frame each time the canvas is
+    // painted (up to 60/s). This is the most direct, zero-copy path and avoids
+    // the tainted-canvas problem that a drawImage proxy would cause.
+    _canvasStream = srcCanvas.captureStream(60);
+    console.log('[Video] captureStream(60) on EJS canvas ✓',
+      srcCanvas.width + '×' + srcCanvas.height);
   } catch (e) {
-    console.warn('[WebRTC] captureStream failed', e);
+    console.error('[Video] captureStream failed:', e);
   }
   return _canvasStream;
 }
 
 async function _offerViewer (viewerSocketId) {
-  const stream = _captureCanvasStream();
-  if (!stream) {
+  if (!_captureCanvasStream()) {
     console.warn('[WebRTC] No canvas stream yet, queuing', viewerSocketId);
     if (!_pendingViewers.includes(viewerSocketId)) _pendingViewers.push(viewerSocketId);
     return;
@@ -315,10 +331,18 @@ async function _offerViewer (viewerSocketId) {
     delete _peers[viewerSocketId];
   }
 
+  // Build a fresh snapshot stream: video from canvas + audio from dest node.
+  // Using a new MediaStream avoids the late-track problem (tracks added to
+  // _canvasStream after addTrack won't be sent unless we renegotiate).
+  const offerStream = _buildOfferStream();
+  console.log('[WebRTC] Offering to', viewerSocketId,
+    '— video:', offerStream.getVideoTracks().length,
+    'audio:', offerStream.getAudioTracks().length);
+
   const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
   _peers[viewerSocketId] = pc;
 
-  stream.getTracks().forEach(t => pc.addTrack(t, stream));
+  offerStream.getTracks().forEach(t => pc.addTrack(t, offerStream));
 
   pc.onicecandidate = ({ candidate }) => {
     if (candidate && netCtrl && netCtrl.socket) {
@@ -328,17 +352,25 @@ async function _offerViewer (viewerSocketId) {
 
   pc.onconnectionstatechange = () => {
     if (pc.connectionState === 'connected') {
-      // Constrain video encoding: halve resolution, cap bitrate, limit to 20fps
+      console.log('[WebRTC] Connected to', viewerSocketId);
       pc.getSenders().forEach(async sender => {
-        if (sender.track && sender.track.kind === 'video') {
+        if (sender.track?.kind === 'video') {
           try {
             const params = sender.getParameters();
-            if (!params.encodings || !params.encodings.length) params.encodings = [{}];
-            params.encodings[0].maxBitrate        = 600_000;
-            params.encodings[0].scaleResolutionDownBy = 2;   // half res → pixelated on viewer
-            params.encodings[0].maxFramerate      = 20;
+            if (!params.encodings?.length) params.encodings = [{}];
+            // 4 Mbps uncapped framerate, never scale resolution down
+            params.encodings[0].maxBitrate            = 4_000_000;
+            params.encodings[0].degradationPreference = 'maintain-resolution';
             await sender.setParameters(params);
-            console.log('[WebRTC] Encoding params applied (600kbps, 1/2 res, 20fps)');
+            console.log('[WebRTC] Encoding: 4 Mbps, maintain-resolution');
+          } catch (_) {}
+        }
+        if (sender.track?.kind === 'audio') {
+          try {
+            const params = sender.getParameters();
+            if (!params.encodings?.length) params.encodings = [{}];
+            params.encodings[0].maxBitrate = 128_000;  // 128 kbps audio
+            await sender.setParameters(params);
           } catch (_) {}
         }
       });
@@ -488,6 +520,31 @@ function launchEmulator (gameUrl, gameName) {
       netCtrl.setEmulatorReady(true);
       netCtrl.setRom(window.EJS_gameName || '');
     }
+
+    // ── Audio: ensure dest node exists and is connected ─────────────────────
+    // The constructor patch runs early, but call _ensureAudioDest() here too
+    // as a belt-and-braces fallback if EJS somehow created its context before
+    // our script tag ran (e.g. cached inline script).
+    _ensureAudioDest();
+    // Hard fallback: if still no dest, try connecting directly via gameManager
+    if (!_ejsAudioDest) {
+      const gm = window.EJS_emulator?.gameManager;
+      if (gm?.audioContext) {
+        _ejsAudioCtx  = gm.audioContext;
+        _ejsAudioDest = _ejsAudioCtx.createMediaStreamDestination();
+        const master  = gm.volumeNode || gm.volume || gm.gainNode || gm.masterGain;
+        const dest    = _ejsAudioCtx.destination;
+        // Connect both master gain (if present) and destination-mirroring via patch
+        if (master?.connect) {
+          try { _origAudioConnect.call(master, _ejsAudioDest); } catch (_) {}
+        }
+        // Re-patch AudioNode.connect for any future connections on this context
+        console.log('[Audio] Hard fallback: dest created from gameManager.audioContext');
+      }
+    }
+    console.log('[Audio] dest ready:', !!_ejsAudioDest,
+      '| tracks:', _ejsAudioDest?.stream.getAudioTracks().length ?? 0);
+
     // Give EmulatorJS a moment to paint the first frame, then capture & offer
     setTimeout(() => {
       _captureCanvasStream();
