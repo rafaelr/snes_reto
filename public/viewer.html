@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0d0d1a" />
   <title>Retro Multiplayer – Viewer</title>
-  <link rel="stylesheet" href="css/viewer.css?v=5" />
+  <link rel="stylesheet" href="css/viewer.css?v=6" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <script>
     // If no room param, go to lobby
@@ -87,7 +87,7 @@
       <div class="sb-info-row"><span class="sb-label">Nome</span><span id="sb-my-name">—</span></div>
     </div>
 
-    <div class="sb-card">
+    <div class="sb-card" id="sb-players-card">
       <div class="sb-card-title"><span class="material-icons">group</span> Jogadores</div>
       <ul id="sb-player-list"></ul>
     </div>
@@ -203,6 +203,9 @@
   </div>
 </div>
 
+<!-- ── Chat Toast ─────────────────────────────────────────────────────────── -->
+<div id="chat-toast-container"></div>
+
 <!-- ═══════════════════════════════════════════════════════════════════════════
      SCRIPTS
 ════════════════════════════════════════════════════════════════════════════ -->
@@ -295,6 +298,19 @@ function _appendChat (from, text) {
   div.innerHTML = `<strong>${from}</strong> ${text}`;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
+
+  // Toast discreto no canto inferior direito
+  const container = $('chat-toast-container');
+  if (container) {
+    const toast = document.createElement('div');
+    toast.className = 'chat-toast';
+    toast.innerHTML = `<strong>${from}</strong> ${text}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('toast-out');
+      setTimeout(() => toast.remove(), 400);
+    }, 4000);
+  }
 }
 
 $('sb-chat-form').addEventListener('submit', e => {
@@ -874,4 +890,17 @@ document.addEventListener('webkitfullscreenchange', () => {
 document.body.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 </script>
 </body>
+
+
+<svg class="svg-def">
+	<filter id="aberration">
+		<feColorMatrix type="matrix" in="SourceGraphic" result="red_" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" />
+		<feOffset in="red_" dx="4" dy="0" result="red" />
+		<feColorMatrix type="matrix" in="SourceGraphic" result="blue_" values="0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" />
+		<feOffset in="blue_" dx="-4" dy="0" result="blue" />
+		<feBlend mode="screen" in="red" in2="blue" />
+	</filter>
+</svg>
+
 </html>
+

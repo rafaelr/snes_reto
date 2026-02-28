@@ -40,6 +40,13 @@ html, body {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   -webkit-image-rendering: pixelated;
+  /* Retro colour grading */
+  filter: sepia(20%) contrast(110%) brightness(90%);
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.aberration #game-video {
+  filter: url(#aberration) sepia(20%) contrast(110%);
 }
 
 /* ── Waiting overlay ── */
@@ -1092,5 +1099,62 @@ kbd {
   .face-row > span {
     width: 46px;
     height: 46px;
+  }
+}
+
+/* ── Chat Toast ───────────────────────────────────────────────────────────── */
+#chat-toast-container {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.chat-toast {
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.88);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: .76rem;
+  max-width: 220px;
+  word-break: break-word;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  animation: toast-in .2s ease forwards;
+  transition: opacity .4s ease, transform .4s ease;
+}
+
+.chat-toast.toast-out {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.chat-toast strong {
+  color: var(--accent, #e94560);
+  margin-right: 4px;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile: ocultar card de jogadores ───────────────────────────────────── */
+@media (max-width: 768px) {
+  #sb-players-card {
+    display: none;
+  }
+
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  #game-video {
+    transform: scale(1.5);
   }
 }
