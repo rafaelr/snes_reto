@@ -93,34 +93,32 @@
       <ul id="sb-player-list"></ul>
     </div>
 
-    <div class="sb-card">
+    <div class="sb-card sb-kb-card hide-mobile">
       <div class="sb-card-title"><span class="material-icons">keyboard</span> Controles <button id="btn-config-keys" class="btn-card-action" title="Configurar teclas"><span class="material-icons">tune</span></button></div>
       <div class="kb-controller-art">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="13 11 185 83" aria-hidden="true">
-          <path d="m53.907 11.162c-7.0659 0.0153-20.08 3.5453-20.08 6.2828v17.01l42.313-11.338-0.75964-9.4273v-0.58963c0-1.7076-0.07117-1.8237-2.2448-1.8237-5.3721 0-19.229-0.1142-19.229-0.1142zm108.32 0s-13.857 0.1142-19.229 0.1142c-2.1736 0-2.2448 0.11606-2.2448 1.8237v0.58963l-0.75965 9.4273 42.313 11.338v-17.01c0-2.7376-13.014-6.2675-20.08-6.2828z" fill="#a6a6ad"/>
-          <path d="m87.621 11.957c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692zm33.409 0c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692z" fill="#e6e7e9"/>
-          <path d="m53.41 13.272a39.593 40.065 0 0 0-39.593 40.065 39.593 40.065 0 0 0 39.593 40.065 39.593 40.065 0 0 0 25.388-9.3709h58.218a39.593 40.065 0 0 0 25.44 9.3709 39.593 40.065 0 0 0 39.593-40.065 39.593 40.065 0 0 0-39.593-40.065z" fill="#c9cace"/>
-          <circle cx="161.95" cy="53.621" r="34.963" fill="#81868a"/>
-          <rect transform="rotate(51.745)" x="144.43" y="-117.01" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
-          <path d="m179.94 46.621a7.0826 7.0826 0 0 0-7.0828 7.0823 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0823z" fill="#bc0519" opacity=".89"/>
-          <path d="m161.8 60.7a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0822-7.0828 7.0826 7.0826 0 0 0-7.0822-7.0828z" fill="#d6ab20" opacity=".89"/>
-          <rect transform="rotate(51.745)" x="122.39" y="-111.4" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
-          <path d="m161.89 32.791a7.0826 7.0826 0 0 0-7.0823 7.0822 7.0826 7.0826 0 0 0 7.0823 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0822z" fill="#0047b3" opacity=".89"/>
-          <path d="m143.75 46.87a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0828z" fill="#00804d" opacity=".89"/>
-          <path d="m94.522 53.794c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8843 6.0844c-1.2323 0.95094-1.4589 2.7085-0.50798 3.9408 0.95094 1.2323 2.7085 1.4589 3.9408 0.50798l7.8848-6.0844c1.2323-0.95094 1.4584-2.7085 0.50746-3.9408-0.53491-0.69317-1.3249-1.0684-2.1332-1.0945zm20.6 0c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8848 6.0844c-1.2323 0.95094-1.4584 2.7085-0.50746 3.9408s2.7085 1.4589 3.9408 0.50798l7.8843-6.0844c1.2323-0.95094 1.4589-2.7085 0.50798-3.9408-0.5349-0.69317-1.3249-1.0684-2.1332-1.0945z" fill="#4f5055"/>
-          <circle cx="53.883" cy="53.432" r="21.639" fill="#b1b2b7"/>
-          <path d="m50.158 37.683c-1.2308 0-2.2216 0.99076-2.2216 2.2216v8.3194h-8.3194c-1.2308 0-2.2216 0.99076-2.2216 2.2216v6.9479c0 1.2308 0.99076 2.2221 2.2216 2.2221h8.3194v8.3189c0 1.2308 0.99076 2.2221 2.2216 2.2221h6.9479c1.2308 0 2.2221-0.99128 2.2221-2.2221v-8.3189h8.3189c1.2308 0 2.2221-0.99128 2.2221-2.2221v-6.9479c0-1.2308-0.99128-2.2216-2.2221-2.2216h-8.3189v-8.3194c0-1.2308-0.99128-2.2216-2.2221-2.2216z" fill="#5a5b60"/>
-          <!-- Button labels -->
-          <text x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">A</text>
-          <text x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">B</text>
-          <text x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">X</text>
-          <text x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">Y</text>
-          <!-- Keyboard hints (updated dynamically) -->
-          <text id="svg-hint-A" x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">X</text>
-          <text id="svg-hint-B" x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">Z</text>
-          <text id="svg-hint-X" x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">S</text>
-          <text id="svg-hint-Y" x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">A</text>
-        </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="13 11 185 83" aria-hidden="true" style="width: 100%; height: auto; max-height: 120px;">
+        <path d="m53.907 11.162c-7.0659 0.0153-20.08 3.5453-20.08 6.2828v17.01l42.313-11.338-0.75964-9.4273v-0.58963c0-1.7076-0.07117-1.8237-2.2448-1.8237-5.3721 0-19.229-0.1142-19.229-0.1142zm108.32 0s-13.857 0.1142-19.229 0.1142c-2.1736 0-2.2448 0.11606-2.2448 1.8237v0.58963l-0.75965 9.4273 42.313 11.338v-17.01c0-2.7376-13.014-6.2675-20.08-6.2828z" fill="#a6a6ad"/>
+        <path d="m87.621 11.957c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692zm33.409 0c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692z" fill="#e6e7e9"/>
+        <path d="m53.41 13.272a39.593 40.065 0 0 0-39.593 40.065 39.593 40.065 0 0 0 39.593 40.065 39.593 40.065 0 0 0 25.388-9.3709h58.218a39.593 40.065 0 0 0 25.44 9.3709 39.593 40.065 0 0 0 39.593-40.065 39.593 40.065 0 0 0-39.593-40.065z" fill="#c9cace"/>
+        <circle cx="161.95" cy="53.621" r="34.963" fill="#81868a"/>
+        <rect transform="rotate(51.745)" x="144.43" y="-117.01" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
+        <path d="m179.94 46.621a7.0826 7.0826 0 0 0-7.0828 7.0823 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0823z" fill="#bc0519" opacity=".89"/>
+        <path d="m161.8 60.7a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0822-7.0828 7.0826 7.0826 0 0 0-7.0822-7.0828z" fill="#d6ab20" opacity=".89"/>
+        <rect transform="rotate(51.745)" x="122.39" y="-111.4" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
+        <path d="m161.89 32.791a7.0826 7.0826 0 0 0-7.0823 7.0822 7.0826 7.0826 0 0 0 7.0823 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0822z" fill="#0047b3" opacity=".89"/>
+        <path d="m143.75 46.87a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0828z" fill="#00804d" opacity=".89"/>
+        <path d="m94.522 53.794c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8843 6.0844c-1.2323 0.95094-1.4589 2.7085-0.50798 3.9408 0.95094 1.2323 2.7085 1.4589 3.9408 0.50798l7.8848-6.0844c1.2323-0.95094 1.4584-2.7085 0.50746-3.9408-0.53491-0.69317-1.3249-1.0684-2.1332-1.0945zm20.6 0c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8848 6.0844c-1.2323 0.95094-1.4584 2.7085-0.50746 3.9408s2.7085 1.4589 3.9408 0.50798l7.8843-6.0844c1.2323-0.95094 1.4589-2.7085 0.50798-3.9408-0.5349-0.69317-1.3249-1.0684-2.1332-1.0945z" fill="#4f5055"/>
+        <circle cx="53.883" cy="53.432" r="21.639" fill="#b1b2b7"/>
+        <path d="m50.158 37.683c-1.2308 0-2.2216 0.99076-2.2216 2.2216v8.3194h-8.3194c-1.2308 0-2.2216 0.99076-2.2216 2.2216v6.9479c0 1.2308 0.99076 2.2221 2.2216 2.2221h8.3194v8.3189c0 1.2308 0.99076 2.2221 2.2216 2.2221h6.9479c1.2308 0 2.2221-0.99128 2.2221-2.2221v-8.3189h8.3189c1.2308 0 2.2221-0.99128 2.2221-2.2221v-6.9479c0-1.2308-0.99128-2.2216-2.2221-2.2216h-8.3189v-8.3194c0-1.2308-0.99128-2.2216-2.2221-2.2216z" fill="#5a5b60"/>
+        <text x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">A</text>
+        <text x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">B</text>
+        <text x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">X</text>
+        <text x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">Y</text>
+        <text id="svg-hint-A" x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">X</text>
+        <text id="svg-hint-B" x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">Z</text>
+        <text id="svg-hint-X" x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">S</text>
+        <text id="svg-hint-Y" x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">A</text>
+      </svg>
       </div>
       <div id="kb-bindings-display"></div>
     </div>

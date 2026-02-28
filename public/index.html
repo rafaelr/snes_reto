@@ -135,6 +135,11 @@
     <div class="rom-tab-body">
       <!-- Library -->
       <div id="rom-tab-library" class="rom-tab-pane active">
+        <div class="rom-search-wrap">
+          <span class="material-icons">search</span>
+          <input type="text" id="rom-search" placeholder="Buscar jogo…" autocomplete="off" />
+          <button class="rom-search-clear" id="btn-rom-search-clear" type="button" title="Limpar"><span class="material-icons">close</span></button>
+        </div>
         <div id="rom-grid" class="rom-grid"></div>
       </div>
       <!-- Local file -->
@@ -358,14 +363,14 @@ async function _offerViewer (viewerSocketId) {
       console.log('[WebRTC] Connected to', viewerSocketId);
       pc.getSenders().forEach(async sender => {
         if (sender.track?.kind === 'video') {
-          try {
+            try {
             const params = sender.getParameters();
             if (!params.encodings?.length) params.encodings = [{}];
-            // 4 Mbps uncapped framerate, never scale resolution down
-            params.encodings[0].maxBitrate            = 4_000_000;
+            // 2 Mbps uncapped framerate, never scale resolution down
+            params.encodings[0].maxBitrate            = 2_000_000;
             params.encodings[0].degradationPreference = 'maintain-resolution';
             await sender.setParameters(params);
-            console.log('[WebRTC] Encoding: 4 Mbps, maintain-resolution');
+            console.log('[WebRTC] Encoding: 2 Mbps, maintain-resolution');
           } catch (_) {}
         }
         if (sender.track?.kind === 'audio') {
@@ -591,8 +596,44 @@ function launchEmulator (gameUrl, gameName) {
 }
 
 // ── ROM Modal open/close ─────────────────────────────────────────────────────
-function openRomModal () { $('rom-modal').style.display = 'flex'; _loadRomGrid(); }
+function openRomModal () {
+  $('rom-modal').style.display = 'flex';
+  const s = $('rom-search');
+  if (s) { s.value = ''; _filterRomGrid(''); }
+  _loadRomGrid();
+}
 function closeRomModal () { $('rom-modal').style.display = 'none'; }
+
+// ── ROM search filter ───────────────────────────────────────────────────────
+function _filterRomGrid (q) {
+  q = (q || '').trim().toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('#rom-grid .rom-card').forEach(card => {
+    const match = !q || (card.dataset.name || '').toLowerCase().includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  let empty = document.querySelector('#rom-grid .rom-search-empty');
+  if (q && visible === 0) {
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.className = 'rom-grid-empty rom-search-empty';
+      empty.innerHTML = '<span>\uD83D\uDD0D</span>Nenhum jogo encontrado';
+      $('rom-grid').appendChild(empty);
+    }
+  } else {
+    empty && empty.remove();
+  }
+  const clearBtn = $('btn-rom-search-clear');
+  if (clearBtn) clearBtn.style.display = q ? '' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = $('rom-search');
+  if (inp) inp.addEventListener('input', e => _filterRomGrid(e.target.value));
+  const clr = $('btn-rom-search-clear');
+  if (clr) { clr.style.display = 'none'; clr.addEventListener('click', () => { $('rom-search').value = ''; _filterRomGrid(''); $('rom-search').focus(); }); }
+});
 
 $('btn-open-rom-modal').addEventListener('click', openRomModal);
 $('btn-placeholder-rom').addEventListener('click', openRomModal);
