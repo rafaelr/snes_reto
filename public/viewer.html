@@ -387,6 +387,22 @@ socket.on('emulator:left', () => {
   if (pc) { pc.close(); pc = null; }
 });
 
+// Emulator host (re)joined the room — re-arm wait timer so stream resumes
+// automatically without any user interaction.
+socket.on('emulator:joined', () => {
+  console.log('[Stream] Emulator joined — re-arming offer wait timer…');
+  $('overlay-msg').textContent = 'Host conectado. Aguardando transmissão…';
+  $('btn-retry-stream').style.display = 'none';
+  _streamOk = false;
+  _clearRetryTimer();
+  _clearOfferWaitTimer();
+  // Give the host 5 s to deliver an offer on its own (via viewer:joined path).
+  // If it hasn't arrived by then, proactively request one.
+  _offerWaitTimer = setTimeout(() => {
+    if (!_streamOk) _requestStream();
+  }, 5000);
+});
+
 // ── WebRTC: receive offer from host ───────────────────────────────────────────
 socket.on('webrtc:offer', async ({ from, offer }) => {
   console.log('[WebRTC] Received offer from', from);

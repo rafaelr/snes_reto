@@ -190,6 +190,9 @@ io.on('connection', socket => {
           name:     p.name,
         });
       }
+      // Tell all existing viewers that an emulator host is now present so they
+      // can re-arm their offer-wait timers and request a stream automatically.
+      socket.to(roomId).emit('emulator:joined', {});
     }
 
     console.log(`  ↳ ${socket.id} joined room "${roomId}" as Player ${slot}${isHost ? ' [HOST]' : ''}`);
