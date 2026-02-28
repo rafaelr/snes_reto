@@ -46,6 +46,9 @@
       <div class="loader-track"><div class="loader-fill"></div></div>
       <div class="loader-dots"><span></span><span></span><span></span></div>
     </div>
+    <button id="btn-retry-stream" style="margin-top:18px;display:none;padding:8px 20px;background:#e94560;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer">
+      <span class="material-icons" style="vertical-align:middle;font-size:1rem">refresh</span> Tentar novamente
+    </button>
   </div>
 </div>
 
@@ -234,6 +237,9 @@ let mySlot     = null;
 let hostSockId = null;
 let pc         = null;
 let socket     = null;
+let _retryTimer    = null;   // fires after _requestStream if still no stream
+let _offerWaitTimer = null;  // grace period before first request-offer
+let _streamOk      = false;  // true once a video track is received
 
 // ── Name modal ────────────────────────────────────────────────────────────────
 const nameInput   = $('modal-name-input');
@@ -337,6 +343,16 @@ socket.on('room:joined', ({ slot, isHost, roomId, info }) => {
   if (info && info.host) {
     hostSockId = info.host;
   }
+
+  // Immediately ask the host for a stream offer (handles the case where the
+  // host is already running and would otherwise only offer on viewer:joined)
+  _streamOk = false;
+  // Give the server 5 s to deliver a WebRTC offer via the normal viewer:joined
+  // path. If nothing arrives by then, proactively request one.
+  _clearOfferWaitTimer();
+  _offerWaitTimer = setTimeout(() => {
+    if (!_streamOk) _requestStream();
+  }, 5000);
 });
 
 socket.on('room:error', ({ message }) => {
@@ -360,6 +376,10 @@ socket.on('emulator:left', () => {
   $('stream-status').textContent = '⏳ Host saiu. Aguardando reconexão…';
   $('overlay-msg').textContent   = 'O host desconectou. Aguardando...';
   $('overlay').style.display = 'flex';
+  $('btn-retry-stream').style.display = 'none';
+  _streamOk = false;
+  _clearRetryTimer();
+  _clearOfferWaitTimer();
   const video = $('game-video');
   video.srcObject = null;
   if (pc) { pc.close(); pc = null; }
@@ -369,6 +389,8 @@ socket.on('emulator:left', () => {
 socket.on('webrtc:offer', async ({ from, offer }) => {
   console.log('[WebRTC] Received offer from', from);
   hostSockId = from;
+  // Offer arrived — cancel the initial grace-period request
+  _clearOfferWaitTimer();
 
   // Always recreate so reconnects from the host work cleanly
   if (pc) { pc.close(); pc = null; }
@@ -393,6 +415,37 @@ socket.on('webrtc:ice', async ({ from, candidate }) => {
   } catch (_) {}
 });
 } // end _connectSocket
+
+// ── Request (or re-request) a WebRTC offer from the emulator host ─────────────
+function _requestStream () {
+  if (!socket || !socket.connected) return;
+  console.log('[Stream] Requesting offer from host…');
+  $('overlay-msg').textContent = 'Solicitando transmissão…';
+  $('btn-retry-stream').style.display = 'none';
+  // Close any stale peer connection first
+  if (pc) { pc.close(); pc = null; }
+  socket.emit('webrtc:request-offer');
+  _startRetryTimer();
+}
+
+function _startRetryTimer () {
+  _clearRetryTimer();
+  _retryTimer = setTimeout(() => {
+    if (!_streamOk) {
+      $('btn-retry-stream').style.display = 'inline-block';
+      $('overlay-msg').textContent = 'Nenhuma transmissão recebida. Clique para tentar novamente.';
+    }
+  }, 8000);
+}
+
+function _clearRetryTimer () {
+  if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
+}
+
+function _clearOfferWaitTimer () {
+  if (_offerWaitTimer) { clearTimeout(_offerWaitTimer); _offerWaitTimer = null; }
+}
+
 // ── RTCPeerConnection setup ───────────────────────────────────────────────────
 function _initPeerConnection () {
 
@@ -401,9 +454,14 @@ function _initPeerConnection () {
   // When host stream arrives → play in video element
   pc.ontrack = (e) => {
     console.log('[WebRTC] Track received');
+    _streamOk = true;
+    _clearRetryTimer();
+    _clearOfferWaitTimer();
+    $('btn-retry-stream').style.display = 'none';
     const video = $('game-video');
-    if (video.srcObject !== e.streams[0]) {
-      video.srcObject = e.streams[0];
+    const stream = e.streams[0] || new MediaStream([e.track]);
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
       video.play().catch(() => {}); // autoplay policy might block; unmute button helps
       $('stream-status').textContent = `🟢 Transmitindo — P${mySlot}`;
       $('overlay').style.display = 'none';
@@ -439,6 +497,9 @@ $('btn-unmute').addEventListener('click', () => {
   if (!video.paused) return;
   video.play().catch(() => {});
 });
+
+// ── Retry stream button ───────────────────────────────────────────────────────
+$('btn-retry-stream').addEventListener('click', () => _requestStream());
 
 // ── Joypad: send bitmask to server → server forwards to host ──────────────────
 function _sendButtons () {

@@ -260,6 +260,21 @@ io.on('connection', socket => {
     io.to(to).emit('webrtc:ice', { from: socket.id, candidate });
   });
 
+  // ── Viewer requests a (re-)offer from the emulator host ───────────────────
+  // Fired when the viewer didn't receive a stream within the timeout, or
+  // when the user manually clicks "Retry stream".
+  socket.on('webrtc:request-offer', () => {
+    const { roomId } = socket.data;
+    const room = rooms.get(roomId);
+    if (!room || !room.emulatorSocket) return;
+    io.to(room.emulatorSocket).emit('viewer:joined', {
+      socketId: socket.id,
+      slot:     socket.data.slot,
+      name:     room.players.get(socket.id)?.name || 'Viewer',
+    });
+    console.log(`  ↳ viewer:joined re-emitted for ${socket.id} (request-offer)`);
+  });
+
   // ── Chat message ─────────────────────────────────────────────────────────────
   socket.on('chat:msg', ({ text }) => {
     const { roomId, slot } = socket.data;

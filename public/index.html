@@ -301,7 +301,19 @@ async function _offerViewer (viewerSocketId) {
     if (!_pendingViewers.includes(viewerSocketId)) _pendingViewers.push(viewerSocketId);
     return;
   }
-  if (_peers[viewerSocketId]) return; // already connected
+
+  // If there is already a peer, only skip if the connection is healthy
+  if (_peers[viewerSocketId]) {
+    const existingState = _peers[viewerSocketId].connectionState;
+    if (existingState === 'connected' || existingState === 'connecting') {
+      console.log('[WebRTC] Peer already active for', viewerSocketId, '—', existingState);
+      return;
+    }
+    // Stale / failed connection — close and re-offer
+    console.log('[WebRTC] Closing stale peer for', viewerSocketId, '—', existingState);
+    _peers[viewerSocketId].close();
+    delete _peers[viewerSocketId];
+  }
 
   const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
   _peers[viewerSocketId] = pc;
@@ -482,6 +494,15 @@ function launchEmulator (gameUrl, gameName) {
       const pending = _pendingViewers.splice(0);
       pending.forEach(id => _offerViewer(id));
     }, 800);
+
+    // Periodic flush: keep retrying any pending viewers (e.g. if canvas wasn't
+    // ready on the first attempt) until all get a stream or the tab closes.
+    const _pendingFlush = setInterval(() => {
+      if (_pendingViewers.length === 0) return;
+      if (!_captureCanvasStream()) return;          // canvas still not ready
+      const pending = _pendingViewers.splice(0);
+      pending.forEach(id => _offerViewer(id));
+    }, 3000);
   };
 
   const s = document.createElement('script');
