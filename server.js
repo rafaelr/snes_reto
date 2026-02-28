@@ -263,6 +263,16 @@ io.on('connection', socket => {
     io.to(to).emit('webrtc:ice', { from: socket.id, candidate });
   });
 
+  // ── Host signals that the emulator game is now live ───────────────────────
+  // Broadcast to all viewers so they can (re-)request a WebRTC stream
+  // immediately, without waiting for the grace-period timer.
+  socket.on('emulator:game-started', () => {
+    const { roomId } = socket.data;
+    if (!roomId) return;
+    socket.to(roomId).emit('emulator:game-started', {});
+    console.log(`  ↳ emulator:game-started broadcast in room "${roomId}"`);
+  });
+
   // ── Viewer requests a (re-)offer from the emulator host ───────────────────
   // Fired when the viewer didn't receive a stream within the timeout, or
   // when the user manually clicks "Retry stream".

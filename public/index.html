@@ -186,6 +186,9 @@
   </div>
 </div>
 
+<!-- Toast container (populated by JS) -->
+<div id="toast-container"></div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/socket-controller.js"></script>
 <script>
@@ -399,8 +402,9 @@ function _bindWebRTCHost () {
   if (_webrtcBound) return; // already bound on this socket instance
   _webrtcBound = true;
 
-  netCtrl.socket.on('viewer:joined', ({ socketId }) => {
+  netCtrl.socket.on('viewer:joined', ({ socketId, slot, name }) => {
     console.log('[WebRTC] Viewer joined:', socketId);
+    _showToast(`P${slot || '?'} ${name || 'Viewer'} entrou na sala`);
     _offerViewer(socketId);
   });
 
@@ -428,6 +432,20 @@ function escHtml (str) {
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Toast notifications ──────────────────────────────────────────────────────
+function _showToast (msg, icon) {
+  icon = icon || 'person_add';
+  const tc  = $('toast-container');
+  const el  = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="material-icons">${icon}</span><span>${escHtml(msg)}</span>`;
+  tc.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 300);
+  }, 3000);
 }
 
 function _ctrlUrl (roomId) {
@@ -550,6 +568,11 @@ function launchEmulator (gameUrl, gameName) {
       _captureCanvasStream();
       const pending = _pendingViewers.splice(0);
       pending.forEach(id => _offerViewer(id));
+      // Tell all viewers (including those waiting after a disconnect) that the
+      // game canvas is live so they can request a stream immediately.
+      if (netCtrl && netCtrl.socket) {
+        netCtrl.socket.emit('emulator:game-started');
+      }
     }, 800);
 
     // Periodic flush: keep retrying any pending viewers (e.g. if canvas wasn't

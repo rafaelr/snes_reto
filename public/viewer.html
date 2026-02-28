@@ -387,6 +387,16 @@ socket.on('emulator:left', () => {
   if (pc) { pc.close(); pc = null; }
 });
 
+// Host's game canvas is live — request stream immediately (no 5 s grace wait)
+socket.on('emulator:game-started', () => {
+  console.log('[Stream] Host game started — requesting stream immediately…');
+  $('overlay-msg').textContent = 'Jogo iniciado. Conectando transmissão…';
+  $('btn-retry-stream').style.display = 'none';
+  _clearRetryTimer();
+  _clearOfferWaitTimer();
+  _requestStream();
+});
+
 // Emulator host (re)joined the room — re-arm wait timer so stream resumes
 // automatically without any user interaction.
 socket.on('emulator:joined', () => {
