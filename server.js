@@ -40,6 +40,11 @@ const io     = new Server(server, {
   cors: { origin: '*' },
   pingTimeout:  20000,   // 20 s — faster dead-socket detection
   pingInterval: 10000,   // heartbeat every 10 s
+  // Disable per-message deflate: compression adds latency to small joypad
+  // packets and the gains are negligible for tiny bitmask payloads.
+  perMessageDeflate: false,
+  // Prefer WebSocket from the start; skip long-polling upgrade overhead.
+  transports: ['websocket', 'polling'],
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -287,6 +292,9 @@ io.on('connection', socket => {
     });
     console.log(`  ↳ viewer:joined re-emitted for ${socket.id} (request-offer)`);
   });
+
+  // ── Latency probe — viewer uses this to measure round-trip time ────────────
+  socket.on('perf:ping', (_, ack) => { if (typeof ack === 'function') ack(Date.now()); });
 
   // ── Chat message ─────────────────────────────────────────────────────────────
   socket.on('chat:msg', ({ text }) => {

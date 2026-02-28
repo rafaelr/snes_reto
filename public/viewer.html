@@ -61,6 +61,7 @@
     <button class="icon-btn" id="btn-sidebar-toggle" title="Menu"><span class="material-icons">menu</span></button>
     <span id="stream-status">⏳ Aguardando transmissão do host…</span>
     <span id="slot-badge"></span>
+    <span id="latency-hud" class="latency-hud"></span>
     <button id="btn-vpad-toggle" class="icon-btn" title="Controle"><span class="material-icons">sports_esports</span></button>
     <button id="btn-fullscreen" class="icon-btn" title="Tela cheia"><span class="material-icons">fullscreen</span></button>
     <button id="btn-unmute"><span class="material-icons">volume_off</span></button>
@@ -324,7 +325,8 @@ $('sb-chat-form').addEventListener('submit', e => {
 
 // ── Socket (deferred) ─────────────────────────────────────────────────────────
 function _connectSocket () {
-  socket = io();
+  // Force WebSocket transport — avoid HTTP-polling latency on (re)connect.
+  socket = io({ transports: ['websocket'], upgrade: false });
 
 socket.on('connect', () => {
   $('overlay-msg').textContent = `Conectando à sala "${ROOM}"…`;
@@ -495,8 +497,8 @@ function _clearOfferWaitTimer () {
 // Every 2 s we check if the playback is more than TARGET_BEHIND seconds behind
 // the buffer end; if so, snap forward so delay never grows.
 let _liveEdgeSyncId = null;
-const LIVE_BEHIND_MAX = 0.35;  // allow at most 350 ms of buffering
-const LIVE_TARGET     = 0.10;  // snap to 100 ms behind live edge
+const LIVE_BEHIND_MAX = 0.15;  // allow at most 150 ms of buffering
+const LIVE_TARGET     = 0.05;  // snap to 50 ms behind live edge
 
 function _startLiveEdgeSync (video) {
   if (_liveEdgeSyncId) clearInterval(_liveEdgeSyncId);
@@ -508,7 +510,47 @@ function _startLiveEdgeSync (video) {
       video.currentTime = liveEnd - LIVE_TARGET;
       console.log(`[LiveEdge] Snapped +${(behind - LIVE_TARGET).toFixed(2)}s`);
     }
+    _updateLatencyHud(null, Math.round(behind * 1000));
   }, 2000);
+}
+
+// ── Latency HUD ──────────────────────────────────────────────────────────────
+let _latRtt   = null;  // ms, round-trip to server
+let _latVideo = null;  // ms, video buffer lag
+let _latPingId = null;
+
+function _updateLatencyHud (rtt, vid) {
+  if (rtt !== null  && rtt !== undefined)  _latRtt   = rtt;
+  if (vid !== null  && vid !== undefined)  _latVideo = vid;
+  const el = $('latency-hud');
+  if (!el) return;
+
+  const parts = [];
+  if (_latRtt   !== null) parts.push(`⚡ ${_latRtt}ms`);
+  if (_latVideo !== null) parts.push(`📺 +${_latVideo}ms`);
+  const total = (_latRtt || 0) + (_latVideo || 0);
+  if (_latRtt !== null && _latVideo !== null) parts.push(`≈ ${total}ms`);
+
+  el.textContent = parts.join('  ');
+  el.className = 'latency-hud' +
+    (total > 500 ? ' lat-bad' : total > 200 ? ' lat-warn' : ' lat-ok');
+}
+
+function _startLatencyMonitor () {
+  if (_latPingId) return; // already running
+  _latPingId = setInterval(() => {
+    if (!socket || !socket.connected) return;
+    const t0 = Date.now();
+    socket.emit('perf:ping', null, () => {
+      _updateLatencyHud(Date.now() - t0, null);
+    });
+    // Also refresh video lag on the same tick
+    const video = $('game-video');
+    if (video && video.buffered.length && !video.paused) {
+      const liveEnd = video.buffered.end(video.buffered.length - 1);
+      _updateLatencyHud(null, Math.round((liveEnd - video.currentTime) * 1000));
+    }
+  }, 1000);
 }
 
 // ── RTCPeerConnection setup ───────────────────────────────────────────────────
@@ -533,6 +575,7 @@ function _initPeerConnection () {
       video.srcObject = stream;
       video.play().catch(() => {});
       _startLiveEdgeSync(video);
+      _startLatencyMonitor();
     }
   };
 
@@ -572,11 +615,13 @@ $('btn-retry-stream').addEventListener('click', () => _requestStream());
 // ── Joypad: send bitmask to server → server forwards to host ──────────────────
 function _sendButtons () {
   if (!mySlot) return;  // not joined yet
-  socket.emit('joypad:input', {
+  // volatile: drop this packet if the previous one was not yet flushed.
+  // This prevents stale inputs from queuing up during lag spikes — the host
+  // will simply keep the last delivered state rather than replaying old ones.
+  socket.volatile.emit('joypad:input', {
     roomId:  ROOM,
     slot:    mySlot,      // fallback for server if socket.data is stale
     buttons: buttons >>> 0,
-    axes:    { x: 0, y: 0 },
   });
 }
 

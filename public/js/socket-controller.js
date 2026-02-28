@@ -51,7 +51,8 @@ class SocketController {
 
   // ── Connect ──────────────────────────────────────────────────────────────────
   connect () {
-    this.socket = io();
+    // Force WebSocket; avoids polling round-trips that inflate input latency.
+    this.socket = io({ transports: ['websocket'], upgrade: false });
 
     this.socket.on('connect', () => {
       this.connected = true;
