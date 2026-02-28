@@ -1,0 +1,423 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retro Multiplayer – Jogue jogos retro com amigos online</title>
+  <meta name="description" content="Plataforma gratuita de emulacao multiplayer retro. Jogue seus jogos favoritos com ate 4 amigos em tempo real, direto no navegador, sem instalar nada." />
+  <link rel="stylesheet" href="css/lobby.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="logo"><span class="material-icons">sports_esports</span> Retro Multiplayer</div>
+  <nav class="header-nav" aria-label="Navegacao principal">
+    <a href="#criar" class="nav-link">Jogar</a>
+    <a href="#como-funciona" class="nav-link">Como funciona</a>
+    <a href="#sobre" class="nav-link">Sobre</a>
+  </nav>
+  <div class="header-meta">
+    <span class="live-dot" title="Ao vivo"></span>
+    <span id="online-count">&mdash;</span> sala(s)
+  </div>
+</header>
+
+<!-- ═══ HERO ═════════════════════════════════════════════════════════════════ -->
+<section class="hero" aria-label="Apresentacao">
+  <div class="hero-inner">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="live-dot-red"></span>
+      Retro Gaming Online &amp; Gratuito
+    </div>
+    <h1 class="hero-title">Jogue jogos retro<br class="hero-br"/> com seus <em>amigos</em></h1>
+    <p class="hero-desc">Emulacao multiplayer em tempo real no navegador. Sem instalacao, sem cadastro &mdash; ate 4 jogadores em qualquer sala.</p>
+    <div class="hero-actions">
+      <a href="#criar" class="btn primary hero-btn"><span class="material-icons">sports_esports</span> Criar uma sala</a>
+      <a href="#como-funciona" class="btn secondary hero-btn"><span class="material-icons">info</span> Como funciona</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-n">4</span><span class="stat-l">Jogadores max</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-n">0ms</span><span class="stat-l">Instalacao</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-n">100%</span><span class="stat-l">Codigo aberto</span></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═════════════════════════════════════════════════════════════ -->
+<section class="features-section" aria-label="Funcionalidades">
+  <div class="features-inner">
+    <div class="section-label">Funcionalidades</div>
+    <h2 style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:900;letter-spacing:-0.04em;color:#0f0f0f;margin-bottom:0">Tudo que voc&#234; precisa,<br/>direto no navegador</h2>
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-img" aria-hidden="true">
+        <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="32" r="14" fill="#fff2f2" stroke="#e8332a" stroke-width="1.5"/>
+          <text x="22" y="37" text-anchor="middle" font-size="12" fill="#e8332a" font-weight="bold" font-family="sans-serif">P1</text>
+          <circle cx="54" cy="32" r="14" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+          <text x="54" y="37" text-anchor="middle" font-size="12" fill="#374151" font-weight="bold" font-family="sans-serif">P2</text>
+          <circle cx="86" cy="32" r="14" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+          <text x="86" y="37" text-anchor="middle" font-size="12" fill="#374151" font-weight="bold" font-family="sans-serif">P3</text>
+          <circle cx="108" cy="56" r="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+          <text x="108" y="60" text-anchor="middle" font-size="10" fill="#374151" font-weight="bold" font-family="sans-serif">P4</text>
+          <line x1="22" y1="46" x2="54" y2="46" stroke="#e8332a" stroke-width="1" stroke-dasharray="4,3" opacity=".4"/>
+          <line x1="54" y1="46" x2="86" y2="46" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="86" y1="46" x2="108" y2="56" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4,3"/>
+        </svg>
+      </div>
+      <div class="feature-body">
+        <div class="feature-icon-badge"><span class="material-icons">groups</span></div>
+        <h3>Multijogador Real</h3>
+        <p>Ate 4 jogadores simultaneos. Cada participante controla seu proprio personagem com sincronizacao via WebRTC e Socket.IO.</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-img" aria-hidden="true">
+        <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="8" width="100" height="64" rx="6" fill="#f5f5f5" stroke="#d4d4d4" stroke-width="1.5"/>
+          <rect x="10" y="8" width="100" height="16" rx="6" fill="#e8332a"/>
+          <rect x="10" y="16" width="100" height="8" fill="#e8332a"/>
+          <circle cx="20" cy="16" r="2.5" fill="rgba(255,255,255,.5)"/>
+          <circle cx="28" cy="16" r="2.5" fill="rgba(255,255,255,.5)"/>
+          <circle cx="36" cy="16" r="2.5" fill="rgba(255,255,255,.5)"/>
+          <rect x="44" y="10" width="56" height="12" rx="3" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+          <rect x="18" y="32" width="84" height="6" rx="2" fill="#e8332a" opacity=".3"/>
+          <rect x="18" y="44" width="60" height="4" rx="2" fill="#e5e7eb"/>
+          <rect x="18" y="54" width="76" height="4" rx="2" fill="#f3f4f6"/>
+        </svg>
+      </div>
+      <div class="feature-body">
+        <div class="feature-icon-badge"><span class="material-icons">language</span></div>
+        <h3>100% no Navegador</h3>
+        <p>Sem download, sem plugin. O emulador roda direto no Chrome, Firefox ou Edge usando EmulatorJS — compativel com desktop e mobile.</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-img" aria-hidden="true">
+        <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="15" y="10" width="90" height="52" rx="5" fill="#f5f5f5" stroke="#d4d4d4" stroke-width="1.5"/>
+          <rect x="22" y="18" width="76" height="36" rx="2" fill="#fafafa" stroke="#e5e5e5" stroke-width="1"/>
+          <rect x="30" y="24" width="28" height="20" rx="2" fill="#fff2f2"/>
+          <rect x="64" y="28" width="26" height="16" rx="2" fill="#f5f5f5"/>
+          <rect x="22" y="50" width="28" height="10" rx="3" fill="#e8332a"/>
+          <text x="36" y="58" text-anchor="middle" font-size="7" fill="white" font-weight="bold" font-family="sans-serif">LIVE</text>
+          <path d="M100 35 Q108 28 108 40 Q108 52 100 45" fill="none" stroke="#e8332a" stroke-width="2" opacity=".7"/>
+          <path d="M103 35 Q115 26 115 40 Q115 54 103 45" fill="none" stroke="#e8332a" stroke-width="1.5" opacity=".35"/>
+        </svg>
+      </div>
+      <div class="feature-body">
+        <div class="feature-icon-badge"><span class="material-icons">cast</span></div>
+        <h3>Transmissao ao Vivo</h3>
+        <p>Espectadores assistem ao stream de video em tempo real via WebRTC e controlam o jogo remotamente de qualquer lugar.</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-img" aria-hidden="true">
+        <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="14" y="34" width="48" height="34" rx="3" fill="#f5f5f5" stroke="#d4d4d4" stroke-width="1.5"/>
+          <rect x="14" y="26" width="48" height="34" rx="3" fill="#f0f0f0" stroke="#d4d4d4" stroke-width="1.5"/>
+          <rect x="14" y="18" width="48" height="34" rx="3" fill="#fff2f2" stroke="#fca5a5" stroke-width="1.5"/>
+          <rect x="20" y="22" width="36" height="20" rx="2" fill="white" opacity=".6"/>
+          <rect x="24" y="27" width="28" height="3" rx="1" fill="#e8332a" opacity=".5"/>
+          <rect x="24" y="33" width="20" height="2" rx="1" fill="#d4d4d4"/>
+          <circle cx="92" cy="40" r="18" fill="#fff2f2" stroke="#fca5a5" stroke-width="1.5"/>
+          <path d="M92 50 L92 32 M86 38 L92 32 L98 38" stroke="#e8332a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="feature-body">
+        <div class="feature-icon-badge"><span class="material-icons">cloud_upload</span></div>
+        <h3>Sua Biblioteca</h3>
+        <p>Carregue seus proprios arquivos ROM (.sfc, .smc) ou envie para a biblioteca compartilhada e disponibilize para toda a sala.</p>
+      </div>
+    </div>
+
+  </div><!-- features-grid -->
+  </div><!-- features-inner -->
+</section>
+
+<!-- ═══ CREATE + ROOMS ═══════════════════════════════════════════════════════ -->
+<main id="criar">
+
+  <section>
+    <div class="section-title">
+      <h2>Criar nova sala</h2>
+    </div>
+    <div class="create-card">
+      <div class="create-form">
+        <div class="field">
+          <label for="inp-room">Nome da sala</label>
+          <input type="text" id="inp-room" placeholder="ex: sala-do-mario" maxlength="32" />
+        </div>
+        <div class="field">
+          <label for="inp-name">Seu nome</label>
+          <input type="text" id="inp-name" placeholder="Player 1" maxlength="20" />
+        </div>
+        <button id="btn-create" class="btn primary"><span class="material-icons">sports_esports</span> Criar e jogar</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title rooms-header">
+      <h2>Salas ativas</h2>
+      <span class="live-dot" title="Atualizacao em tempo real"></span>
+      <button id="btn-refresh" class="btn-icon" title="Atualizar"><span class="material-icons">refresh</span></button>
+    </div>
+    <div id="room-grid">
+      <div class="empty-state">
+        <span class="empty-icon material-icons">sports_esports</span>
+        Nenhuma sala ativa ainda.<br/>Crie a sua!
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ HOW IT WORKS ═════════════════════════════════════════════════════════ -->
+<section class="how-section" id="como-funciona" aria-label="Como funciona">
+  <div class="how-inner">
+    <h2 class="how-title">Como <em>funciona</em></h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon-wrap"><span class="material-icons">add_circle</span></div>
+        <h4>Crie uma sala</h4>
+        <p>Escolha um nome para a sala e seu apelido. Clique em "Criar e jogar" para virar o host.</p>
+      </div>
+      <div class="step-arrow" aria-hidden="true"><span class="material-icons">arrow_forward</span></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon-wrap"><span class="material-icons">folder_open</span></div>
+        <h4>Escolha um jogo</h4>
+        <p>Selecione uma ROM da biblioteca ou carregue seu proprio arquivo .sfc / .smc.</p>
+      </div>
+      <div class="step-arrow" aria-hidden="true"><span class="material-icons">arrow_forward</span></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon-wrap"><span class="material-icons">share</span></div>
+        <h4>Convide amigos</h4>
+        <p>Compartilhe o link gerado. Amigos entram como P2, P3 ou P4 pelo navegador, sem cadastro.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══════════════════════════════════════════════════════════════ -->
+<footer id="sobre" aria-label="Rodape">
+  <div class="footer-inner">
+
+    <div class="footer-brand">
+      <div class="footer-logo"><span class="material-icons">sports_esports</span> Retro Multiplayer</div>
+      <p>Projeto independente de emulacao retro para fins educacionais e de entretenimento pessoal. Nao afiliado a Nintendo ou qualquer fabricante de jogos.</p>
+      <div class="footer-tech">
+        <span class="tech-pill">EmulatorJS</span>
+        <span class="tech-pill">Socket.IO</span>
+        <span class="tech-pill">WebRTC</span>
+        <span class="tech-pill">Node.js</span>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h5><span class="material-icons">info</span> Sobre a Plataforma</h5>
+      <p>Retro Multiplayer e uma plataforma experimental de emulacao retro que utiliza <strong>EmulatorJS</strong> para rodar jogos classicos direto no navegador, com compatibilidade com Super Nintendo (SNES). O sistema multiplayer e construido com <strong>Socket.IO</strong> para gerenciamento de salas e <strong>WebRTC</strong> para transmissao de video e controles em tempo real.</p>
+    </div>
+
+    <div class="footer-col">
+      <h5><span class="material-icons">gavel</span> Uso Responsavel de ROMs</h5>
+      <ul>
+        <li>Esta plataforma <strong>nao distribui, hospeda nem incentiva</strong> a pirataria de jogos comerciais.</li>
+        <li>Os usuarios sao <strong>exclusivamente responsaveis</strong> pelos arquivos ROM que carregam.</li>
+        <li>Utilize apenas ROMs de jogos que voce possui fisicamente ou que estejam em <strong>dominio publico</strong>.</li>
+        <li>Respeite as leis de direitos autorais do seu pais.</li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h5><span class="material-icons">privacy_tip</span> Privacidade</h5>
+      <ul>
+        <li><strong>Nao coletamos dados pessoais</strong> de nenhum usuario.</li>
+        <li>Apelidos sao salvos apenas no <code>localStorage</code> do seu navegador.</li>
+        <li>Mensagens de chat e controles <strong>nao sao gravados</strong> em servidor permanente.</li>
+        <li>Arquivos ROM enviados existem apenas na memoria durante a sessao ativa.</li>
+        <li>Nenhum cookie de rastreamento e utilizado.</li>
+      </ul>
+    </div>
+
+  </div>
+  <div class="footer-bottom">
+    <span>&copy; 2025 Retro Multiplayer &mdash; Projeto educacional sem fins lucrativos</span>
+    <span>Feito com <span class="material-icons" style="font-size:.9em;vertical-align:-.1em;color:var(--orange2)">favorite</span> e tecnologia open source</span>
+  </div>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ═══ SCRIPTS ═══════════════════════════════════════════════════════════════ -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+'use strict';
+
+const $ = id => document.getElementById(id);
+
+function escHtml (s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function slug (s) {
+  return String(s)
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    || 'sala-' + Math.floor(Math.random() * 9000 + 1000);
+}
+
+function showToast (msg, duration = 2500) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+const savedName = localStorage.getItem('snes_player_name') || '';
+if (savedName) $('inp-name').value = savedName;
+$('inp-name').addEventListener('change', () => {
+  localStorage.setItem('snes_player_name', $('inp-name').value.trim());
+});
+
+function _name () {
+  const n = $('inp-name').value.trim() || 'Player';
+  localStorage.setItem('snes_player_name', n);
+  return n;
+}
+
+function createRoom (roomId) {
+  location.href = `/?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(_name())}`;
+}
+
+function joinRoom (roomId) {
+  location.href = `/viewer.html?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(_name())}`;
+}
+
+$('btn-create').addEventListener('click', () => {
+  const raw    = $('inp-room').value.trim();
+  const roomId = raw ? slug(raw) : 'sala-' + Math.floor(Math.random() * 9000 + 1000);
+  createRoom(roomId);
+});
+$('inp-room').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('btn-create').click();
+});
+
+$('btn-refresh').addEventListener('click', () => {
+  fetch('/api/rooms')
+    .then(r => r.json())
+    .then(renderRooms)
+    .catch(() => showToast('Erro ao atualizar salas'));
+});
+
+function renderRooms (rooms) {
+  $('online-count').textContent = rooms.length;
+  const grid = $('room-grid');
+
+  if (!rooms.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon material-icons">sports_esports</span>
+        Nenhuma sala ativa ainda.<br/>Crie a sua!
+      </div>`;
+    return;
+  }
+
+  const slotColors = ['','p1','p2','p3','p4'];
+
+  grid.innerHTML = rooms.map(room => {
+    const isFull   = room.playerCount >= room.maxPlayers;
+    const countTxt = `${room.playerCount} / ${room.maxPlayers}`;
+    const playerDots = room.players
+      .sort((a,b) => a.slot - b.slot)
+      .map(p =>
+        `<span class="slot-dot ${slotColors[p.slot]}">
+           <span class="dot"></span>${escHtml(p.name)}
+         </span>`
+      ).join('');
+    const gameRow = room.romName
+      ? `<div class="room-game"><span class="material-icons">videogame_asset</span> ${escHtml(room.romName)}</div>`
+      : `<div class="room-game" style="color:var(--muted)">Aguardando ROM&hellip;</div>`;
+
+    return `
+      <div class="room-card${isFull ? ' full' : ''}" data-room="${escHtml(room.id)}">
+        <div class="room-card-header">
+          <span class="room-name" title="${escHtml(room.id)}">
+            <span class="material-icons">meeting_room</span> ${escHtml(room.id)}
+          </span>
+          <span class="room-count${isFull ? ' full' : ''}">${countTxt}</span>
+        </div>
+        ${gameRow}
+        <div class="room-players">${playerDots}</div>
+        <div class="room-card-footer">
+          ${isFull
+            ? `<span style="color:var(--muted);font-size:0.82rem">Sala cheia</span>`
+            : `<button class="btn primary btn-join" data-room="${escHtml(room.id)}">Entrar <span class="material-icons">arrow_forward</span></button>`
+          }
+        </div>
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.btn-join').forEach(btn => {
+    btn.addEventListener('click', () => joinRoom(btn.dataset.room));
+  });
+}
+
+const socket = io();
+socket.on('rooms:list', data => {
+  renderRooms(data);
+  const el = document.getElementById('online-count');
+  if (el) el.textContent = Array.isArray(data) ? data.length : '0';
+});
+socket.on('connect', () => {
+  fetch('/api/rooms').then(r => r.json()).then(data => {
+    renderRooms(data);
+    const el = document.getElementById('online-count');
+    if (el) el.textContent = Array.isArray(data) ? data.length : '0';
+  }).catch(console.error);
+});
+fetch('/api/rooms').then(r => r.json()).then(data => {
+  renderRooms(data);
+  const el = document.getElementById('online-count');
+  if (el) el.textContent = Array.isArray(data) ? data.length : '0';
+}).catch(console.error);
+
+// ── Scroll-reveal ─────────────────────────────────────────────────────────
+(function () {
+  const io2 = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io2.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.feature-card, .step, .create-card, .room-card, .how-title, .section-label').forEach((el, i) => {
+    el.classList.add('reveal');
+    const delay = Math.min(i * 0.08, 0.4);
+    el.style.transitionDelay = delay + 's';
+    io2.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

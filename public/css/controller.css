@@ -1,0 +1,333 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   SNES Multiplayer – Controller Page CSS
+   Mobile-optimised virtual SNES gamepad
+══════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg:       #0d0d1a;
+  --surface:  #1a1a2e;
+  --btn-bg:   #16213e;
+  --accent:   #e94560;
+  --accent2:  #0f3460;
+  --text:     #e0e0e0;
+  --muted:    #888;
+  --radius:   12px;
+
+  /* Face button colours (original SNES NTSC colour scheme) */
+  --col-b:    #3344cc;
+  --col-a:    #cc3344;
+  --col-y:    #bb8800;
+  --col-x:    #006600;
+  --col-l:    #555576;
+  --col-r:    #555576;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Connect form ────────────────────────────────────────────────────────────── */
+#connect-form {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.connect-card {
+  background: var(--surface);
+  border: 1px solid var(--accent2);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  width: 320px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.connect-card h1 { font-size: 1.4rem; color: var(--accent); }
+.connect-card p  { font-size: 0.85rem; color: var(--muted); }
+
+label {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+input[type="text"] {
+  background: var(--bg);
+  border: 1px solid var(--accent2);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.btn-join {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 4px;
+}
+.btn-join:active { transform: scale(0.97); }
+
+.hint { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+
+/* ── Status bar ──────────────────────────────────────────────────────────────── */
+.status {
+  width: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 8px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--accent2);
+  flex-shrink: 0;
+}
+.status.connected    { color: #7eff9c; }
+.status.disconnected { color: var(--muted); }
+
+.player-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   CONTROLLER
+═══════════════════════════════════════════════════════════════════════════════ */
+#controller {
+  width: 100%;
+  max-width: 560px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 20px;
+  flex: 1;
+}
+
+/* ── Top row: L – CENTER – R ─────────────────────────────────────────────────── */
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.btn-shoulder {
+  width: 80px;
+  height: 44px;
+  border-radius: 10px 10px 4px 4px;
+  background: var(--col-l);
+  border: 2px solid #33334e;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: filter 0.1s;
+}
+.btn-shoulder:active { filter: brightness(1.5); transform: scale(0.95); }
+
+.center-btns {
+  display: flex;
+  gap: 16px;
+}
+
+.btn-center {
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: #333344;
+  border: 1px solid #555576;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: filter 0.1s;
+}
+.btn-center:active { filter: brightness(1.8); }
+
+/* ── Middle: D-Pad + Face Buttons ───────────────────────────────────────────── */
+.middle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── D-Pad ───────────────────────────────────────────────────────────────────── */
+.dpad {
+  width: 140px;
+  height: 140px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dpad-cross {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows:    1fr 1fr 1fr;
+}
+
+.dpad-up, .dpad-down, .dpad-left, .dpad-right, .dpad-center {
+  background: #1e2a3e;
+  border: 2px solid #2a3a50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.dpad-up     { grid-column: 2; grid-row: 1; border-radius: 6px 6px 0 0; }
+.dpad-left   { grid-column: 1; grid-row: 2; border-radius: 6px 0 0 6px; }
+.dpad-center { grid-column: 2; grid-row: 2; cursor: default; background: #161e2e; }
+.dpad-right  { grid-column: 3; grid-row: 2; border-radius: 0 6px 6px 0; }
+.dpad-down   { grid-column: 2; grid-row: 3; border-radius: 0 0 6px 6px; }
+
+.dpad-up:active, .dpad-down:active,
+.dpad-left:active, .dpad-right:active { background: #3a5a7e; color: #fff; }
+
+/* ── Face buttons ────────────────────────────────────────────────────────────── */
+.face-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.face-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.face-btn {
+  width:  56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.9);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+  transition: transform 0.08s, filter 0.08s;
+  position: relative;
+}
+.face-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+
+.btn-b { background: var(--col-b); }
+.btn-a { background: var(--col-a); }
+.btn-y { background: var(--col-y); }
+.btn-x { background: var(--col-x); }
+
+/* ── Chat panel ──────────────────────────────────────────────────────────────── */
+#chat-panel {
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface);
+  border-top: 1px solid var(--accent2);
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+
+#chat-log {
+  display: none;
+  max-height: 100px;
+  overflow-y: auto;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+#chat-form {
+  display: none;
+  gap: 6px;
+}
+
+#chat-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--accent2);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 5px 8px;
+  font-size: 0.85rem;
+}
+
+#chat-form button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+
+.toggle-chat {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+}
+.toggle-chat:active { color: var(--accent); }
+
+/* ── Landscape layout adjustments ───────────────────────────────────────────── */
+@media (orientation: landscape) and (max-height: 480px) {
+  #controller {
+    grid-template-rows: 1fr;
+    grid-template-columns: auto 1fr auto;
+    padding: 6px;
+    gap: 10px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .top-row    { flex-direction: column; width: auto; }
+  .middle-row { flex: 1; justify-content: space-around; }
+
+  .btn-shoulder { width: 50px; height: 60px; font-size: 0.8rem; }
+  .dpad { width: 120px; height: 120px; }
+  .face-btn { width: 48px; height: 48px; font-size: 0.85rem; }
+}

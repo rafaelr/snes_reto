@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0d0d1a" />
+  <title>Retro Multiplayer – Viewer</title>
+  <link rel="stylesheet" href="css/viewer.css?v=5" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>
+    // If no room param, go to lobby
+    if (!new URLSearchParams(location.search).has('room')) {
+      location.replace('/lobby.html');
+    }
+  </script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     NAME MODAL – shown on first load
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="name-modal-backdrop">
+  <div id="name-modal">
+    <div class="modal-icon"><span class="material-icons">sports_esports</span></div>
+    <h2>Qual o seu nome?</h2>
+    <p>Escolha um apelido para entrar na sala como espectador/jogador.</p>
+    <input id="modal-name-input" type="text" maxlength="20" placeholder="Seu apelido" autocomplete="off" />
+    <button id="modal-confirm"><span class="material-icons">login</span> Entrar</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     OVERLAY – shown while waiting for the host stream
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="overlay">
+  <div class="overlay-scene">
+    <div class="overlay-glow"></div>
+    <div class="overlay-logo">
+      <span class="material-icons overlay-icon">sports_esports</span>
+    </div>
+    <div class="overlay-brand">Retro Multiplayer</div>
+    <p id="overlay-msg">Conectando à sala…</p>
+    <div class="overlay-loader">
+      <div class="loader-track"><div class="loader-fill"></div></div>
+      <div class="loader-dots"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     STREAM AREA
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="stream-area">
+  <!-- floating status bar -->
+  <div id="stream-bar">
+    <button class="icon-btn" id="btn-sidebar-toggle" title="Menu"><span class="material-icons">menu</span></button>
+    <span id="stream-status">⏳ Aguardando transmissão do host…</span>
+    <span id="slot-badge"></span>
+    <button id="btn-vpad-toggle" class="icon-btn" title="Controle"><span class="material-icons">sports_esports</span></button>
+    <button id="btn-fullscreen" class="icon-btn" title="Tela cheia"><span class="material-icons">fullscreen</span></button>
+    <button id="btn-unmute"><span class="material-icons">volume_off</span></button>
+  </div>
+  <video id="game-video" autoplay playsinline muted></video>
+</div><!-- #stream-area -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="sidebar-backdrop"></div>
+<aside id="sidebar">
+  <div class="sidebar-head">
+    <span>Sala</span>
+    <button class="icon-btn" id="btn-sidebar-close"><span class="material-icons">close</span></button>
+  </div>
+  <div class="sidebar-body">
+
+    <div class="sb-card">
+      <div class="sb-card-title"><span class="material-icons">meeting_room</span> Informações</div>
+      <div class="sb-info-row"><span class="sb-label">Sala</span><span id="sb-room-name">—</span></div>
+      <div class="sb-info-row"><span class="sb-label">Seu slot</span><span id="sb-my-slot">—</span></div>
+      <div class="sb-info-row"><span class="sb-label">Nome</span><span id="sb-my-name">—</span></div>
+    </div>
+
+    <div class="sb-card">
+      <div class="sb-card-title"><span class="material-icons">group</span> Jogadores</div>
+      <ul id="sb-player-list"></ul>
+    </div>
+
+    <div class="sb-card">
+      <div class="sb-card-title"><span class="material-icons">keyboard</span> Controles <button id="btn-config-keys" class="btn-card-action" title="Configurar teclas"><span class="material-icons">tune</span></button></div>
+      <div class="kb-controller-art">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="13 11 185 83" aria-hidden="true">
+          <path d="m53.907 11.162c-7.0659 0.0153-20.08 3.5453-20.08 6.2828v17.01l42.313-11.338-0.75964-9.4273v-0.58963c0-1.7076-0.07117-1.8237-2.2448-1.8237-5.3721 0-19.229-0.1142-19.229-0.1142zm108.32 0s-13.857 0.1142-19.229 0.1142c-2.1736 0-2.2448 0.11606-2.2448 1.8237v0.58963l-0.75965 9.4273 42.313 11.338v-17.01c0-2.7376-13.014-6.2675-20.08-6.2828z" fill="#a6a6ad"/>
+          <path d="m87.621 11.957c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692zm33.409 0c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692z" fill="#e6e7e9"/>
+          <path d="m53.41 13.272a39.593 40.065 0 0 0-39.593 40.065 39.593 40.065 0 0 0 39.593 40.065 39.593 40.065 0 0 0 25.388-9.3709h58.218a39.593 40.065 0 0 0 25.44 9.3709 39.593 40.065 0 0 0 39.593-40.065 39.593 40.065 0 0 0-39.593-40.065z" fill="#c9cace"/>
+          <circle cx="161.95" cy="53.621" r="34.963" fill="#81868a"/>
+          <rect transform="rotate(51.745)" x="144.43" y="-117.01" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
+          <path d="m179.94 46.621a7.0826 7.0826 0 0 0-7.0828 7.0823 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0823z" fill="#bc0519" opacity=".89"/>
+          <path d="m161.8 60.7a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0822-7.0828 7.0826 7.0826 0 0 0-7.0822-7.0828z" fill="#d6ab20" opacity=".89"/>
+          <rect transform="rotate(51.745)" x="122.39" y="-111.4" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
+          <path d="m161.89 32.791a7.0826 7.0826 0 0 0-7.0823 7.0822 7.0826 7.0826 0 0 0 7.0823 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0822z" fill="#0047b3" opacity=".89"/>
+          <path d="m143.75 46.87a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0828z" fill="#00804d" opacity=".89"/>
+          <path d="m94.522 53.794c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8843 6.0844c-1.2323 0.95094-1.4589 2.7085-0.50798 3.9408 0.95094 1.2323 2.7085 1.4589 3.9408 0.50798l7.8848-6.0844c1.2323-0.95094 1.4584-2.7085 0.50746-3.9408-0.53491-0.69317-1.3249-1.0684-2.1332-1.0945zm20.6 0c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8848 6.0844c-1.2323 0.95094-1.4584 2.7085-0.50746 3.9408s2.7085 1.4589 3.9408 0.50798l7.8843-6.0844c1.2323-0.95094 1.4589-2.7085 0.50798-3.9408-0.5349-0.69317-1.3249-1.0684-2.1332-1.0945z" fill="#4f5055"/>
+          <circle cx="53.883" cy="53.432" r="21.639" fill="#b1b2b7"/>
+          <path d="m50.158 37.683c-1.2308 0-2.2216 0.99076-2.2216 2.2216v8.3194h-8.3194c-1.2308 0-2.2216 0.99076-2.2216 2.2216v6.9479c0 1.2308 0.99076 2.2221 2.2216 2.2221h8.3194v8.3189c0 1.2308 0.99076 2.2221 2.2216 2.2221h6.9479c1.2308 0 2.2221-0.99128 2.2221-2.2221v-8.3189h8.3189c1.2308 0 2.2221-0.99128 2.2221-2.2221v-6.9479c0-1.2308-0.99128-2.2216-2.2221-2.2216h-8.3189v-8.3194c0-1.2308-0.99128-2.2216-2.2221-2.2216z" fill="#5a5b60"/>
+          <!-- Button labels -->
+          <text x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">A</text>
+          <text x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">B</text>
+          <text x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">X</text>
+          <text x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">Y</text>
+          <!-- Keyboard hints (updated dynamically) -->
+          <text id="svg-hint-A" x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">X</text>
+          <text id="svg-hint-B" x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">Z</text>
+          <text id="svg-hint-X" x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">S</text>
+          <text id="svg-hint-Y" x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">A</text>
+        </svg>
+      </div>
+      <div id="kb-bindings-display"></div>
+    </div>
+
+    <div class="sb-card sb-chat-card">
+      <div class="sb-card-title"><span class="material-icons">chat</span> Chat</div>
+      <div id="sb-chat-log"></div>
+      <form id="sb-chat-form" autocomplete="off">
+        <input type="text" id="sb-chat-input" placeholder="Mensagem…" maxlength="200" />
+        <button type="submit"><span class="material-icons">send</span></button>
+      </form>
+    </div>
+
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MOBILE OVERLAY CONTROLLER
+════════════════════════════════════════════════════════════════════════════ -->
+<!-- SELECT/START no topo em modo paisagem -->
+<div id="vpad-landscape-top">
+  <button class="vbtn center" data-btn="SELECT">SELECT</button>
+  <button class="vbtn center" data-btn="START">START</button>
+</div>
+
+<div id="vpad">
+
+  <!-- Shoulder + center row -->
+  <div class="vpad-top">
+    <button class="vbtn shoulder" data-btn="L">L</button>
+    <div class="center-btns">
+      <button class="vbtn center" data-btn="SELECT">SELECT</button>
+      <button class="vbtn center" data-btn="START">START</button>
+    </div>
+    <button class="vbtn shoulder" data-btn="R">R</button>
+  </div>
+
+  <!-- D-Pad + face buttons -->
+  <div class="vpad-mid">
+
+    <!-- Joystick direcional -->
+    <div id="joystick">
+      <div id="joystick-knob"></div>
+    </div>
+
+    <!-- Face buttons (SNES layout) -->
+    <div class="face-btns">
+      <div class="face-row">
+        <span></span>
+        <button class="vbtn x-btn" data-btn="X">X</button>
+        <span></span>
+      </div>
+      <div class="face-row">
+        <button class="vbtn y-btn" data-btn="Y">Y</button>
+        <span></span>
+        <button class="vbtn a-btn" data-btn="A">A</button>
+      </div>
+      <div class="face-row">
+        <span></span>
+        <button class="vbtn b-btn" data-btn="B">B</button>
+        <span></span>
+      </div>
+    </div>
+
+  </div><!-- .vpad-mid -->
+</div><!-- #vpad -->
+
+<!-- ── Keys Config Modal ─────────────────────────────────────────────────── -->
+<div id="keys-modal-backdrop">
+  <div id="keys-modal">
+    <div class="keys-modal-hd">
+      <span class="material-icons">tune</span>
+      <span>Configurar Controles</span>
+      <button id="keys-modal-close" type="button"><span class="material-icons">close</span></button>
+    </div>
+    <p class="keys-modal-hint">Clique em uma linha e pressione a tecla desejada.</p>
+    <div id="keys-list"></div>
+    <div class="keys-modal-ft">
+      <button id="btn-keys-reset" type="button"><span class="material-icons">restart_alt</span> Resetar padrão</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════════════════════ -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+'use strict';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+const SLOT_COLOR = { 1: '#e94560', 2: '#0f9460', 3: '#c8a000', 4: '#7b44d4' };
+
+// SNES button bitmask – must match server & host side
+const BTN_MAP = {
+  B: 0, Y: 1, SELECT: 2, START: 3,
+  UP: 4, DOWN: 5, LEFT: 6, RIGHT: 7,
+  A: 8, X: 9, L: 10, R: 11,
+};
+
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+];
+
+// ── URL params ────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+const ROOM   = params.get('room') || 'main';
+let   NAME   = params.get('name') || localStorage.getItem('snes_player_name') || '';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let buttons    = 0;
+let mySlot     = null;
+let hostSockId = null;
+let pc         = null;
+let socket     = null;
+
+// ── Name modal ────────────────────────────────────────────────────────────────
+const nameInput   = $('modal-name-input');
+const nameBackdrop = $('name-modal-backdrop');
+
+nameInput.value = NAME;
+
+function _startSession (name) {
+  NAME = name.trim() || 'Player';
+  localStorage.setItem('snes_player_name', NAME);
+  nameBackdrop.style.display = 'none';
+  $('sb-my-name').textContent = NAME;
+  _connectSocket();
+}
+
+$('modal-confirm').addEventListener('click', () => {
+  _startSession(nameInput.value);
+});
+nameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') _startSession(nameInput.value);
+});
+
+// Show modal (auto-confirm if name already known and came via URL param)
+if (params.get('name')) {
+  _startSession(NAME);
+} else {
+  nameBackdrop.style.display = 'flex';
+  // Focus after paint
+  requestAnimationFrame(() => { nameInput.focus(); nameInput.select(); });
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function _openSidebar  () { $('sidebar').classList.add('open'); $('sidebar-backdrop').classList.add('open'); }
+function _closeSidebar () { $('sidebar').classList.remove('open'); $('sidebar-backdrop').classList.remove('open'); }
+
+$('btn-sidebar-toggle').addEventListener('click', _openSidebar);
+$('btn-sidebar-close').addEventListener('click', _closeSidebar);
+$('sidebar-backdrop').addEventListener('click', _closeSidebar);
+
+function _renderPlayerList (players) {
+  const ul = $('sb-player-list');
+  if (!players || !players.length) { ul.innerHTML = '<li class="sb-empty">Nenhum jogador</li>'; return; }
+  ul.innerHTML = players.map(p =>
+    `<li class="sb-player"><span class="sb-slot" style="background:${SLOT_COLOR[p.slot]||'#555'}">P${p.slot}</span> ${p.name || 'Player'}</li>`
+  ).join('');
+}
+
+function _appendChat (from, text) {
+  const log = $('sb-chat-log');
+  const div = document.createElement('div');
+  div.className = 'sb-chat-msg';
+  div.innerHTML = `<strong>${from}</strong> ${text}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+$('sb-chat-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const input = $('sb-chat-input');
+  const text  = input.value.trim();
+  if (!text || !socket) return;
+  socket.emit('chat:msg', { text });
+  input.value = '';
+});
+
+// ── Socket (deferred) ─────────────────────────────────────────────────────────
+function _connectSocket () {
+  socket = io();
+
+socket.on('connect', () => {
+  $('overlay-msg').textContent = `Conectando à sala "${ROOM}"…`;
+  socket.emit('room:join', { roomId: ROOM, playerName: NAME, role: 'viewer' });
+  // Re-init peer connection on reconnect
+  if (pc) { pc.close(); pc = null; }
+});
+
+socket.on('room:joined', ({ slot, isHost, roomId, info }) => {
+  mySlot = slot;
+
+  // Update slot badge
+  const badge = $('slot-badge');
+  badge.textContent     = `P${slot}`;
+  badge.style.background = SLOT_COLOR[slot] || '#555';
+
+  $('stream-status').textContent = `🟡 Aguardando stream — Sala: ${roomId} · P${slot}`;
+  $('overlay-msg').textContent   = `Conectado como P${slot}. Aguardando o host iniciar o jogo…`;
+
+  // Update sidebar info
+  $('sb-room-name').textContent = roomId;
+  $('sb-my-slot').textContent   = `P${slot}`;
+  $('sb-my-name').textContent   = NAME;
+  if (info && info.players) _renderPlayerList(info.players);
+
+  // If somehow viewer joins as host (rare edge case), redirect to game page
+  if (isHost) {
+    location.replace(`/?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(NAME)}`);
+    return;
+  }
+
+  // Save host socket ID from room info (used for ICE candidates)
+  if (info && info.host) {
+    hostSockId = info.host;
+  }
+});
+
+socket.on('room:error', ({ message }) => {
+  $('overlay-msg').textContent = '❌ ' + message;
+  $('stream-status').textContent = '❌ ' + message;
+});
+
+socket.on('room:updated', (info) => {
+  if (info && info.host) hostSockId = info.host;
+  if (info && info.players) _renderPlayerList(info.players);
+});
+
+socket.on('chat:msg', msg => _appendChat(msg.from, msg.text));
+
+socket.on('disconnect', () => {
+  $('stream-status').textContent = '❌ Desconectado. Reconectando…';
+});
+
+// Emulator host left — show overlay waiting for new host
+socket.on('emulator:left', () => {
+  $('stream-status').textContent = '⏳ Host saiu. Aguardando reconexão…';
+  $('overlay-msg').textContent   = 'O host desconectou. Aguardando...';
+  $('overlay').style.display = 'flex';
+  const video = $('game-video');
+  video.srcObject = null;
+  if (pc) { pc.close(); pc = null; }
+});
+
+// ── WebRTC: receive offer from host ───────────────────────────────────────────
+socket.on('webrtc:offer', async ({ from, offer }) => {
+  console.log('[WebRTC] Received offer from', from);
+  hostSockId = from;
+
+  // Always recreate so reconnects from the host work cleanly
+  if (pc) { pc.close(); pc = null; }
+  _initPeerConnection();
+
+  try {
+    await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit('webrtc:answer', { to: from, answer });
+    console.log('[WebRTC] Answer sent');
+  } catch (e) {
+    console.error('[WebRTC] Answer failed', e);
+  }
+});
+
+// ── WebRTC: receive ICE candidates from host ──────────────────────────────────
+socket.on('webrtc:ice', async ({ from, candidate }) => {
+  if (!pc || !candidate) return;
+  try {
+    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+  } catch (_) {}
+});
+} // end _connectSocket
+// ── RTCPeerConnection setup ───────────────────────────────────────────────────
+function _initPeerConnection () {
+
+  pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+
+  // When host stream arrives → play in video element
+  pc.ontrack = (e) => {
+    console.log('[WebRTC] Track received');
+    const video = $('game-video');
+    if (video.srcObject !== e.streams[0]) {
+      video.srcObject = e.streams[0];
+      video.play().catch(() => {}); // autoplay policy might block; unmute button helps
+      $('stream-status').textContent = `🟢 Transmitindo — P${mySlot}`;
+      $('overlay').style.display = 'none';
+    }
+  };
+
+  // Send our ICE candidates to the host
+  pc.onicecandidate = ({ candidate }) => {
+    if (candidate && hostSockId) {
+      socket.emit('webrtc:ice', { to: hostSockId, candidate });
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    const state = pc.connectionState;
+    if (state === 'connected') {
+      $('stream-status').textContent = `🟢 Conectado — P${mySlot}`;
+    } else if (state === 'disconnected' || state === 'failed') {
+      $('stream-status').textContent = '🔴 Conexão perdida — aguardando reconexão…';
+      pc.close();
+      pc = null;
+    }
+  };
+}
+
+// ── Mute / unmute toggle ──────────────────────────────────────────────────────
+$('btn-unmute').addEventListener('click', () => {
+  const video = $('game-video');
+  video.muted = !video.muted;
+  $('btn-unmute').innerHTML = video.muted
+    ? '<span class="material-icons">volume_off</span>'
+    : '<span class="material-icons">volume_up</span>';
+  if (!video.paused) return;
+  video.play().catch(() => {});
+});
+
+// ── Joypad: send bitmask to server → server forwards to host ──────────────────
+function _sendButtons () {
+  if (!mySlot) return;  // not joined yet
+  socket.emit('joypad:input', {
+    roomId:  ROOM,
+    slot:    mySlot,      // fallback for server if socket.data is stale
+    buttons: buttons >>> 0,
+    axes:    { x: 0, y: 0 },
+  });
+}
+
+function _press (name, active) {
+  const bit = BTN_MAP[name];
+  if (bit === undefined) return;
+  if (active) buttons |=  (1 << bit);
+  else        buttons &= ~(1 << bit);
+  _sendButtons();
+}
+
+// ── Face / shoulder / center buttons (touch/mouse) ──────────────────────────
+document.querySelectorAll('[data-btn]').forEach(el => {
+  const name = el.dataset.btn;
+
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    _press(name, true);
+    el.classList.add('active');
+  });
+
+  el.addEventListener('pointerup', e => {
+    e.preventDefault();
+    _press(name, false);
+    el.classList.remove('active');
+  });
+
+  el.addEventListener('pointercancel', () => {
+    _press(name, false);
+    el.classList.remove('active');
+  });
+});
+
+// ── Joystick direcional ───────────────────────────────────────────────────────
+(function () {
+  const joy  = document.getElementById('joystick');
+  const knob = document.getElementById('joystick-knob');
+  const DEAD  = 0.22;  // dead-zone: fraction of radius
+  const DIAG  = 0.42;  // min normalised |axis| to activate that direction
+
+  let active = false;
+  const dirs = new Set();
+
+  function update (dx, dy, radius) {
+    const dist  = Math.sqrt(dx * dx + dy * dy);
+    const travel = radius * 0.40;           // max knob travel
+    const clamp  = Math.min(dist, travel);
+    const nx = dist > 0 ? dx / dist : 0;   // normalised -1..1
+    const ny = dist > 0 ? dy / dist : 0;
+
+    // Move knob
+    knob.style.transform =
+      `translate(calc(-50% + ${nx * clamp}px), calc(-50% + ${ny * clamp}px))`;
+
+    // Determine active directions
+    const next = new Set();
+    if (clamp / travel > DEAD) {
+      if (Math.abs(ny) > DIAG) next.add(ny < 0 ? 'UP'   : 'DOWN');
+      if (Math.abs(nx) > DIAG) next.add(nx < 0 ? 'LEFT' : 'RIGHT');
+    }
+
+    // Fire button events for changed directions
+    for (const d of next)  { if (!dirs.has(d)) _press(d, true);  }
+    for (const d of dirs)  { if (!next.has(d)) _press(d, false); }
+    dirs.clear();
+    next.forEach(d => dirs.add(d));
+  }
+
+  function reset () {
+    knob.style.transform = 'translate(-50%, -50%)';
+    knob.classList.remove('active');
+    dirs.forEach(d => _press(d, false));
+    dirs.clear();
+    active = false;
+  }
+
+  function center (e) {
+    const r = joy.getBoundingClientRect();
+    return { cx: r.left + r.width / 2, cy: r.top + r.height / 2, radius: r.width / 2 };
+  }
+
+  joy.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    joy.setPointerCapture(e.pointerId);
+    active = true;
+    knob.classList.add('active');
+    const { cx, cy, radius } = center(e);
+    update(e.clientX - cx, e.clientY - cy, radius);
+  });
+
+  joy.addEventListener('pointermove', e => {
+    if (!active) return;
+    e.preventDefault();
+    const { cx, cy, radius } = center(e);
+    update(e.clientX - cx, e.clientY - cy, radius);
+  });
+
+  joy.addEventListener('pointerup',     reset);
+  joy.addEventListener('pointercancel', reset);
+})();
+
+// ── Key Config ────────────────────────────────────────────────────────────────
+const DEFAULT_KEYS = {
+  UP: 'ArrowUp', DOWN: 'ArrowDown', LEFT: 'ArrowLeft', RIGHT: 'ArrowRight',
+  B: 'z', A: 'x', Y: 'a', X: 's', L: 'q', R: 'w',
+  START: 'Enter', SELECT: 'Tab',
+};
+
+function _loadKeyCfg() {
+  try { const s = localStorage.getItem('snes_keys'); return s ? JSON.parse(s) : { ...DEFAULT_KEYS }; }
+  catch { return { ...DEFAULT_KEYS }; }
+}
+function _saveKeyCfg(cfg) { localStorage.setItem('snes_keys', JSON.stringify(cfg)); }
+
+function _buildKeyMap(cfg) {
+  const map = {};
+  for (const [btn, key] of Object.entries(cfg)) {
+    map[key] = btn;
+    if (key.length === 1) { map[key.toLowerCase()] = btn; map[key.toUpperCase()] = btn; }
+  }
+  return map;
+}
+
+function _keyLabel(key) {
+  const m = { ArrowUp:'↑', ArrowDown:'↓', ArrowLeft:'←', ArrowRight:'→', Enter:'Enter', Tab:'Tab', ' ':'Space', Escape:'Esc', Backspace:'⌫', Shift:'Shift', Control:'Ctrl', Alt:'Alt' };
+  return m[key] || (key.length === 1 ? key.toUpperCase() : key);
+}
+
+let _keyCfg = _loadKeyCfg();
+let KEY_MAP  = _buildKeyMap(_keyCfg);
+
+const KB_GROUPS = [
+  { label: 'D-Pad',    btns: ['UP','DOWN','LEFT','RIGHT'] },
+  { label: 'Botões',   btns: ['B','A','Y','X'] },
+  { label: 'Ombros',   btns: ['L','R'] },
+  { label: 'Especiais',btns: ['START','SELECT'] },
+];
+const SNES_LABEL = {
+  UP:'Cima', DOWN:'Baixo', LEFT:'Esq', RIGHT:'Dir',
+  B:'<span class="kb-btn-badge btn-b">B</span>',
+  A:'<span class="kb-btn-badge btn-a">A</span>',
+  Y:'<span class="kb-btn-badge btn-y">Y</span>',
+  X:'<span class="kb-btn-badge btn-x">X</span>',
+  L:'<span class="kb-btn-badge btn-lr">L</span>',
+  R:'<span class="kb-btn-badge btn-lr">R</span>',
+  START:'START', SELECT:'SELECT',
+};
+
+function _renderKbDisplay() {
+  const el = document.getElementById('kb-bindings-display');
+  if (!el) return;
+  const cols = 2;
+  el.innerHTML = KB_GROUPS.map((g, gi) => {
+    const classes = ['kb-section'];
+    if (gi % cols === 0) classes.push('kb-section-left');
+    if (gi >= KB_GROUPS.length - cols) classes.push('kb-section-last');
+    return `<div class="${classes.join(' ')}">
+      <div class="kb-group-label">${g.label}</div>
+      ${g.btns.map(btn =>
+        `<div class="kb-row"><kbd>${_keyLabel(_keyCfg[btn])}</kbd><div class="kb-mapping">→ ${SNES_LABEL[btn]}</div></div>`
+      ).join('')}
+    </div>`;
+  }).join('');
+  // update SVG hints for face buttons
+  ['A','B','X','Y'].forEach(btn => {
+    const t = document.getElementById('svg-hint-' + btn);
+    if (t) t.textContent = _keyLabel(_keyCfg[btn]);
+  });
+}
+
+// ── Keys Config Modal ─────────────────────────────────────────────────────────
+let _capturingBtn = null;
+
+function _openKeysModal() {
+  _renderKeysList();
+  document.getElementById('keys-modal-backdrop').classList.add('open');
+}
+function _closeKeysModal() {
+  _capturingBtn = null;
+  document.getElementById('keys-modal-backdrop').classList.remove('open');
+}
+function _renderKeysList() {
+  const ORDER = ['UP','DOWN','LEFT','RIGHT','B','A','Y','X','L','R','START','SELECT'];
+  const BTN_BADGE = {
+    B:'<span class="kb-btn-badge btn-b">B</span>', A:'<span class="kb-btn-badge btn-a">A</span>',
+    Y:'<span class="kb-btn-badge btn-y">Y</span>', X:'<span class="kb-btn-badge btn-x">X</span>',
+    L:'<span class="kb-btn-badge btn-lr">L</span>', R:'<span class="kb-btn-badge btn-lr">R</span>',
+  };
+  const LABEL = { UP:'↑ Cima', DOWN:'↓ Baixo', LEFT:'← Esq', RIGHT:'→ Dir', START:'START', SELECT:'SELECT' };
+  document.getElementById('keys-list').innerHTML = ORDER.map(btn =>
+    `<div class="keys-row" data-btn="${btn}" id="krow-${btn}">
+      <div class="keys-btn-name">${BTN_BADGE[btn] || ''}<span>${LABEL[btn] || btn}</span></div>
+      <kbd id="kchip-${btn}">${_keyLabel(_keyCfg[btn])}</kbd>
+    </div>`
+  ).join('');
+  // event delegation – works even if rows are re-rendered
+  const list = document.getElementById('keys-list');
+  list._clickHandler && list.removeEventListener('click', list._clickHandler);
+  list._clickHandler = e => {
+    const row = e.target.closest('.keys-row');
+    if (!row) return;
+    if (_capturingBtn) {
+      const p = document.getElementById('krow-' + _capturingBtn);
+      if (p) p.classList.remove('capturing');
+      const pc = document.getElementById('kchip-' + _capturingBtn);
+      if (pc) pc.textContent = _keyLabel(_keyCfg[_capturingBtn]);
+    }
+    _capturingBtn = row.dataset.btn;
+    row.classList.add('capturing');
+    const chip = document.getElementById('kchip-' + _capturingBtn);
+    if (chip) chip.textContent = '…';
+  };
+  list.addEventListener('click', list._clickHandler);
+}
+
+// Capture keydown for remapping (fires before game handlers)
+document.addEventListener('keydown', e => {
+  if (!_capturingBtn) return;
+  if (e.key === 'Escape') { _closeKeysModal(); e.preventDefault(); e.stopImmediatePropagation(); return; }
+  _keyCfg[_capturingBtn] = e.key;
+  _saveKeyCfg(_keyCfg);
+  KEY_MAP = _buildKeyMap(_keyCfg);
+  const row = document.getElementById('krow-' + _capturingBtn);
+  const chip = document.getElementById('kchip-' + _capturingBtn);
+  if (row) row.classList.remove('capturing');
+  if (chip) chip.textContent = _keyLabel(e.key);
+  _capturingBtn = null;
+  _renderKbDisplay();
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, true); // capture phase — fires before game keydown
+
+document.getElementById('btn-config-keys').addEventListener('click', e => { e.stopPropagation(); _openKeysModal(); });
+document.getElementById('keys-modal-close').addEventListener('click', _closeKeysModal);
+document.getElementById('keys-modal-backdrop').addEventListener('click', e => {
+  if (e.target === e.currentTarget) _closeKeysModal();
+});
+document.getElementById('btn-keys-reset').addEventListener('click', () => {
+  _keyCfg = { ...DEFAULT_KEYS };
+  _saveKeyCfg(_keyCfg);
+  KEY_MAP = _buildKeyMap(_keyCfg);
+  _renderKeysList();
+  _renderKbDisplay();
+});
+
+_renderKbDisplay();
+
+// ── Keyboard (game input) ─────────────────────────────────────────────────────
+const _keysDown = new Set();
+
+document.addEventListener('keydown', e => {
+  const btn = KEY_MAP[e.key];
+  if (!btn) return;
+  if (_keysDown.has(e.key)) return;
+  _keysDown.add(e.key);
+  _press(btn, true);
+  if (['Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+});
+
+document.addEventListener('keyup', e => {
+  const btn = KEY_MAP[e.key];
+  if (!btn) return;
+  _keysDown.delete(e.key);
+  _press(btn, false);
+});
+
+// ── Mobile overlay controller toggle ────────────────────────────────────────
+const _vpad    = document.getElementById('vpad');
+const _btnVpad = document.getElementById('btn-vpad-toggle');
+
+// Vpad visível por padrão (CSS já define display:flex); toggle esconde/mostra
+_btnVpad.classList.add('active');
+
+_btnVpad.addEventListener('click', () => {
+  const hidden = _vpad.classList.contains('vpad-hidden');
+  _vpad.classList.toggle('vpad-hidden', !hidden);
+  _btnVpad.classList.toggle('active', hidden);
+});
+
+// ── Fullscreen toggle ────────────────────────────────────────────────────────
+$('btn-fullscreen').addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    (document.documentElement.requestFullscreen
+      ? document.documentElement.requestFullscreen()
+      : document.documentElement.webkitRequestFullscreen
+      ? document.documentElement.webkitRequestFullscreen()
+      : Promise.resolve()
+    ).catch(() => {});
+  } else {
+    (document.exitFullscreen
+      ? document.exitFullscreen()
+      : document.webkitExitFullscreen
+      ? document.webkitExitFullscreen()
+      : Promise.resolve()
+    ).catch(() => {});
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  $('btn-fullscreen').innerHTML = document.fullscreenElement
+    ? '<span class="material-icons">fullscreen_exit</span>'
+    : '<span class="material-icons">fullscreen</span>';
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  $('btn-fullscreen').innerHTML = (document.fullscreenElement || document.webkitFullscreenElement)
+    ? '<span class="material-icons">fullscreen_exit</span>'
+    : '<span class="material-icons">fullscreen</span>';
+});
+
+// ── Prevent pull-to-refresh ───────────────────────────────────────────────────
+document.body.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+</script>
+</body>
+</html>

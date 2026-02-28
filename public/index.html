@@ -1,0 +1,819 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retro Multiplayer</title>
+  <link rel="stylesheet" href="css/game.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>
+    if (!new URLSearchParams(location.search).has('room')) {
+      location.replace('/lobby.html');
+    }
+  </script>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <button class="icon-btn" id="btn-sidebar" title="Menu"><span class="material-icons">menu</span></button>
+  <span class="logo"><span class="material-icons">sports_esports</span> Retro</span>
+  <div id="room-badge"></div>
+  <span id="room-status-text">Conectando&hellip;</span>
+</header>
+
+<!-- Sidebar backdrop -->
+<div id="sidebar-overlay"></div>
+
+<!-- Sliding sidebar -->
+<aside id="sidebar">
+  <div class="sidebar-head">
+    <span>Painel</span>
+    <button class="icon-btn" id="btn-close-sidebar"><span class="material-icons">close</span></button>
+  </div>
+
+  <!-- Sala -->
+  <div class="card">
+    <h3><span class="material-icons">meeting_room</span> Sala</h3>
+    <label>Seu nome
+      <div class="inline-row">
+        <input type="text" id="player-name" value="Player 1" maxlength="20" />
+        <button id="btn-rename" class="btn sm">OK</button>
+      </div>
+    </label>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Link dos viewers (P2, P3, P4):</div>
+    <div id="ctrl-url" class="link-box">aguardando&hellip;</div>
+    <button id="btn-copy-url" class="btn sm"><span class="material-icons">content_copy</span> Copiar link</button>
+  </div>
+
+  <!-- ROM -->
+  <div class="card">
+    <h3><span class="material-icons">videogame_asset</span> Jogo</h3>
+    <button id="btn-open-rom-modal" class="btn primary" style="width:100%;margin-bottom:8px"><span class="material-icons">sports_esports</span> Selecionar Jogo</button>
+    <div id="rom-status" style="font-size:.78rem;color:var(--muted);min-height:1em"></div>
+  </div>
+
+  <!-- Jogadores -->
+  <div class="card">
+    <h3><span class="material-icons">group</span> Jogadores <span id="player-count" class="badge-sm">0/4</span></h3>
+    <ul id="player-list"></ul>
+  </div>
+
+  <!-- Controles -->
+  <div class="card">
+    <div class="sb-card-title"><span class="material-icons">keyboard</span> Controles (P1) <button id="btn-config-keys" class="btn-card-action" title="Configurar teclas"><span class="material-icons">tune</span></button></div>
+    <div class="kb-controller-art">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="13 11 185 83" aria-hidden="true">
+        <path d="m53.907 11.162c-7.0659 0.0153-20.08 3.5453-20.08 6.2828v17.01l42.313-11.338-0.75964-9.4273v-0.58963c0-1.7076-0.07117-1.8237-2.2448-1.8237-5.3721 0-19.229-0.1142-19.229-0.1142zm108.32 0s-13.857 0.1142-19.229 0.1142c-2.1736 0-2.2448 0.11606-2.2448 1.8237v0.58963l-0.75965 9.4273 42.313 11.338v-17.01c0-2.7376-13.014-6.2675-20.08-6.2828z" fill="#a6a6ad"/>
+        <path d="m87.621 11.957c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692zm33.409 0c-0.59227 0-1.0692 0.47692-1.0692 1.0692v1.1028c0 0.59227 0.47692 1.0687 1.0692 1.0687h7.2161c0.59227 0 1.0692-0.4764 1.0692-1.0687v-1.1028c0-0.59227-0.47692-1.0692-1.0692-1.0692z" fill="#e6e7e9"/>
+        <path d="m53.41 13.272a39.593 40.065 0 0 0-39.593 40.065 39.593 40.065 0 0 0 39.593 40.065 39.593 40.065 0 0 0 25.388-9.3709h58.218a39.593 40.065 0 0 0 25.44 9.3709 39.593 40.065 0 0 0 39.593-40.065 39.593 40.065 0 0 0-39.593-40.065z" fill="#c9cace"/>
+        <circle cx="161.95" cy="53.621" r="34.963" fill="#81868a"/>
+        <rect transform="rotate(51.745)" x="144.43" y="-117.01" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
+        <path d="m179.94 46.621a7.0826 7.0826 0 0 0-7.0828 7.0823 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0823z" fill="#bc0519" opacity=".89"/>
+        <path d="m161.8 60.7a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0822-7.0828 7.0826 7.0826 0 0 0-7.0822-7.0828z" fill="#d6ab20" opacity=".89"/>
+        <rect transform="rotate(51.745)" x="122.39" y="-111.4" width="18.141" height="40.892" rx="9.0705" ry="9.0705" fill="#babbc0"/>
+        <path d="m161.89 32.791a7.0826 7.0826 0 0 0-7.0823 7.0822 7.0826 7.0826 0 0 0 7.0823 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0822z" fill="#0047b3" opacity=".89"/>
+        <path d="m143.75 46.87a7.0826 7.0826 0 0 0-7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828 7.0828 7.0826 7.0826 0 0 0 7.0828-7.0828 7.0826 7.0826 0 0 0-7.0828-7.0828z" fill="#00804d" opacity=".89"/>
+        <path d="m94.522 53.794c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8843 6.0844c-1.2323 0.95094-1.4589 2.7085-0.50798 3.9408 0.95094 1.2323 2.7085 1.4589 3.9408 0.50798l7.8848-6.0844c1.2323-0.95094 1.4584-2.7085 0.50746-3.9408-0.53491-0.69317-1.3249-1.0684-2.1332-1.0945zm20.6 0c-0.62869-0.02033-1.2685 0.17049-1.8076 0.58653l-7.8848 6.0844c-1.2323 0.95094-1.4584 2.7085-0.50746 3.9408s2.7085 1.4589 3.9408 0.50798l7.8843-6.0844c1.2323-0.95094 1.4589-2.7085 0.50798-3.9408-0.5349-0.69317-1.3249-1.0684-2.1332-1.0945z" fill="#4f5055"/>
+        <circle cx="53.883" cy="53.432" r="21.639" fill="#b1b2b7"/>
+        <path d="m50.158 37.683c-1.2308 0-2.2216 0.99076-2.2216 2.2216v8.3194h-8.3194c-1.2308 0-2.2216 0.99076-2.2216 2.2216v6.9479c0 1.2308 0.99076 2.2221 2.2216 2.2221h8.3194v8.3189c0 1.2308 0.99076 2.2221 2.2216 2.2221h6.9479c1.2308 0 2.2221-0.99128 2.2221-2.2221v-8.3189h8.3189c1.2308 0 2.2221-0.99128 2.2221-2.2221v-6.9479c0-1.2308-0.99128-2.2216-2.2221-2.2216h-8.3189v-8.3194c0-1.2308-0.99128-2.2216-2.2221-2.2216z" fill="#5a5b60"/>
+        <!-- Button labels -->
+        <text x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">A</text>
+        <text x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">B</text>
+        <text x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">X</text>
+        <text x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="bold" fill="#fff" font-family="sans-serif">Y</text>
+        <!-- Keyboard hints (updated dynamically) -->
+        <text id="svg-hint-A" x="179.94" y="53.7" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">X</text>
+        <text id="svg-hint-B" x="161.8" y="67.78" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">Z</text>
+        <text id="svg-hint-X" x="161.89" y="39.87" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">S</text>
+        <text id="svg-hint-Y" x="143.75" y="53.95" text-anchor="middle" dominant-baseline="middle" font-size="2.8" fill="#fffc" dy="5.5" font-family="monospace">A</text>
+      </svg>
+    </div>
+    <div id="kb-bindings-display"></div>
+  </div>
+
+  <!-- Chat -->
+  <div class="card">
+    <h3><span class="material-icons">chat</span> Chat</h3>
+    <div id="chat-log"></div>
+    <form id="chat-form" autocomplete="off">
+      <div class="inline-row">
+        <input type="text" id="chat-input" placeholder="Mensagem&hellip;" maxlength="200" />
+        <button type="submit" class="btn primary sm"><span class="material-icons">send</span></button>
+      </div>
+    </form>
+  </div>
+
+</aside>
+
+<!-- Game fills everything -->
+<div id="game-wrap">
+  <div id="game-placeholder">
+    <div class="placeholder-inner">
+      <div class="placeholder-icon"><span class="material-icons">sports_esports</span></div>
+      <h2>Retro Multiplayer</h2>
+      <p>Escolha um jogo para come&ccedil;ar</p>
+      <button id="btn-placeholder-rom" class="btn primary lg" style="margin-top:6px"><span class="material-icons">sports_esports</span> Selecionar Jogo</button>
+      <p class="hint">ou abra o menu <span class="material-icons">menu</span> &rarr; Jogo</p>
+    </div>
+  </div>
+  <div id="game"></div>
+</div>
+
+<!-- ═══ ROM Selector Modal ═══════════════════════════════════════════════ -->
+<div id="rom-modal" class="rom-modal-overlay" style="display:none">
+  <div class="rom-modal-box">
+    <div class="rom-modal-hdr">
+      <h2><span class="material-icons">sports_esports</span> Selecionar Jogo</h2>
+      <button class="icon-btn" id="btn-close-rom-modal" title="Fechar"><span class="material-icons">close</span></button>
+    </div>
+    <div class="rom-tabs">
+      <button class="rom-tab active" data-tab="library"><span class="material-icons">library_books</span> Biblioteca</button>
+      <button class="rom-tab" data-tab="local"><span class="material-icons">folder_open</span> Arquivo Local</button>
+      <button class="rom-tab" data-tab="upload"><span class="material-icons">upload</span> Upload</button>
+    </div>
+    <div class="rom-tab-body">
+      <!-- Library -->
+      <div id="rom-tab-library" class="rom-tab-pane active">
+        <div id="rom-grid" class="rom-grid"></div>
+      </div>
+      <!-- Local file -->
+      <div id="rom-tab-local" class="rom-tab-pane">
+        <div class="drop-zone" id="drop-zone">
+          <span class="material-icons" style="font-size:3.5rem">folder_open</span>
+          <p style="font-size:1.05rem;font-weight:700;color:var(--text)">Arquivo Local</p>
+          <p>Arraste um arquivo ROM ou clique para selecionar</p>
+          <label class="btn primary" style="cursor:pointer;margin-top:14px">
+            Escolher Arquivo
+            <input type="file" id="rom-file" accept=".smc,.sfc,.rom,.bin" />
+          </label>
+          <div id="local-file-info" style="display:none" class="file-chosen"></div>
+          <button id="btn-load-local" class="btn primary" style="display:none;margin-top:4px"><span class="material-icons">play_arrow</span> Carregar Jogo</button>
+        </div>
+      </div>
+      <!-- Upload -->
+      <div id="rom-tab-upload" class="rom-tab-pane">
+        <div class="drop-zone">
+          <span class="material-icons" style="font-size:3.5rem">upload</span>
+          <p style="font-size:1.05rem;font-weight:700;color:var(--text)">Enviar ao Servidor</p>
+          <p>O jogo ficar&aacute; dispon&iacute;vel para todos na biblioteca</p>
+          <label class="btn" style="cursor:pointer;margin-top:14px;border:1px solid var(--accent2)">
+            Escolher Arquivo
+            <input type="file" id="rom-file-upload" accept=".smc,.sfc,.rom,.bin" />
+          </label>
+          <div id="upload-file-info" style="display:none" class="file-chosen"></div>
+          <button id="btn-upload-rom" class="btn primary" style="display:none;margin-top:4px"><span class="material-icons">upload</span> Enviar ao Servidor</button>
+          <div id="rom-status-msg" style="margin-top:8px;font-size:.82rem;color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Keys Config Modal ─────────────────────────────────────────────────── -->
+<div id="keys-modal-backdrop">
+  <div id="keys-modal">
+    <div class="keys-modal-hd">
+      <span class="material-icons">tune</span>
+      <span>Configurar Controles (P1)</span>
+      <button id="keys-modal-close" type="button"><span class="material-icons">close</span></button>
+    </div>
+    <p class="keys-modal-hint">Clique em uma linha e pressione a tecla desejada.</p>
+    <div id="keys-list"></div>
+    <div class="keys-modal-ft">
+      <button id="btn-keys-reset" type="button"><span class="material-icons">restart_alt</span> Resetar padrão</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/socket-controller.js"></script>
+<script>
+'use strict';
+
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const $ = id => document.getElementById(id);
+let ejsLoaded     = false;
+let localBlobUrl  = null;
+let netCtrl       = null;
+
+// ── Audio interception (runs before EmulatorJS loads) ──────────────────────────────────────────
+// Intercept AudioContext creation and AudioNode.connect so ALL audio routed
+// to context.destination is ALSO routed to _ejsAudioDest (our stream sink).
+let _ejsAudioCtx       = null;  // the AudioContext EJS creates
+let _ejsAudioDest      = null;  // MediaStreamAudioDestinationNode
+let _origAudioConnect  = null;  // original AudioNode.prototype.connect
+
+(function _patchAudio () {
+  const OrigAC = window.AudioContext || window.webkitAudioContext;
+  if (!OrigAC) return;
+
+  // 1) Capture the AudioContext when EJS constructs it
+  function PatchedAC () {
+    const ctx = Reflect.construct(OrigAC, arguments, OrigAC);
+    if (!_ejsAudioCtx) { _ejsAudioCtx = ctx; console.log('[Audio] AudioContext captured'); }
+    return ctx;
+  }
+  Object.setPrototypeOf(PatchedAC, OrigAC);
+  PatchedAC.prototype = OrigAC.prototype;
+  window.AudioContext = window.webkitAudioContext = PatchedAC;
+
+  // 2) Patch AudioNode.connect — mirror every src→destination connection to our sink
+  _origAudioConnect = AudioNode.prototype.connect;
+  AudioNode.prototype.connect = function (dest, outIdx, inIdx) {
+    const r = outIdx !== undefined
+      ? _origAudioConnect.call(this, dest, outIdx, inIdx !== undefined ? inIdx : 0)
+      : _origAudioConnect.call(this, dest);
+    if (_ejsAudioDest && dest === this.context.destination) {
+      try { _origAudioConnect.call(this, _ejsAudioDest, outIdx || 0, 0); } catch (_) {}
+    }
+    return r;
+  };
+})();
+
+
+// â”€â”€ WebRTC host state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const _peers          = {};   // viewerSocketId â†’ RTCPeerConnection
+let   _canvasStream   = null;
+let   _pendingViewers = [];   // viewers who joined before game started
+
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+];
+
+function _ensureAudioDest () {
+  if (_ejsAudioDest) return;
+  const ctx = _ejsAudioCtx ||
+    (window.EJS_emulator && window.EJS_emulator.gameManager &&
+     window.EJS_emulator.gameManager.audioContext);
+  if (!ctx) { console.warn('[Audio] No AudioContext yet'); return; }
+  _ejsAudioDest = ctx.createMediaStreamDestination();
+  console.log('[Audio] MediaStreamDestinationNode created');
+  // Retroactively hook the EJS master gain node if accessible
+  const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
+  if (gm) {
+    const master = gm.volumeNode || gm.volume || gm.gainNode || gm.masterGain;
+    if (master && master.connect) {
+      try {
+        _origAudioConnect.call(master, _ejsAudioDest);
+        console.log('[Audio] Retro-connected master gain to stream dest');
+      } catch (e) { console.warn('[Audio] Retro-connect failed', e); }
+    }
+  }
+}
+
+function _captureCanvasStream () {
+  _ensureAudioDest();
+  if (_canvasStream) {
+    // If stream exists but still lacks audio, inject now
+    if (_canvasStream.getAudioTracks().length === 0 && _ejsAudioDest) {
+      _ejsAudioDest.stream.getAudioTracks().forEach(t => _canvasStream.addTrack(t));
+      console.log('[WebRTC] Late audio tracks injected');
+    }
+    return _canvasStream;
+  }
+  // Try multiple selectors — EmulatorJS may render directly or inside an iframe/div
+  const srcCanvas = document.querySelector('#game canvas')
+    || document.querySelector('#game iframe')?.contentDocument?.querySelector('canvas')
+    || document.querySelector('canvas');
+  if (!srcCanvas) return null;
+  try {
+    // Capture directly at the native framerate; quality/bitrate is controlled per-sender
+    _canvasStream = srcCanvas.captureStream(20);
+    if (_ejsAudioDest) {
+      _ejsAudioDest.stream.getAudioTracks().forEach(t => _canvasStream.addTrack(t));
+      console.log('[WebRTC] Stream ready — audio tracks:', _canvasStream.getAudioTracks().length);
+    } else {
+      console.warn('[WebRTC] Canvas stream ready but NO audio tracks yet');
+    }
+    console.log('[WebRTC] Canvas stream captured @20fps');
+  } catch (e) {
+    console.warn('[WebRTC] captureStream failed', e);
+  }
+  return _canvasStream;
+}
+
+async function _offerViewer (viewerSocketId) {
+  const stream = _captureCanvasStream();
+  if (!stream) {
+    console.warn('[WebRTC] No canvas stream yet, queuing', viewerSocketId);
+    if (!_pendingViewers.includes(viewerSocketId)) _pendingViewers.push(viewerSocketId);
+    return;
+  }
+  if (_peers[viewerSocketId]) return; // already connected
+
+  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+  _peers[viewerSocketId] = pc;
+
+  stream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+  pc.onicecandidate = ({ candidate }) => {
+    if (candidate && netCtrl && netCtrl.socket) {
+      netCtrl.socket.emit('webrtc:ice', { to: viewerSocketId, candidate });
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected') {
+      // Constrain video encoding: halve resolution, cap bitrate, limit to 20fps
+      pc.getSenders().forEach(async sender => {
+        if (sender.track && sender.track.kind === 'video') {
+          try {
+            const params = sender.getParameters();
+            if (!params.encodings || !params.encodings.length) params.encodings = [{}];
+            params.encodings[0].maxBitrate        = 600_000;
+            params.encodings[0].scaleResolutionDownBy = 2;   // half res → pixelated on viewer
+            params.encodings[0].maxFramerate      = 20;
+            await sender.setParameters(params);
+            console.log('[WebRTC] Encoding params applied (600kbps, 1/2 res, 20fps)');
+          } catch (_) {}
+        }
+      });
+    } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      console.log('[WebRTC] Peer disconnected:', viewerSocketId);
+      pc.close();
+      delete _peers[viewerSocketId];
+    }
+  };
+
+  try {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    netCtrl.socket.emit('webrtc:offer', { to: viewerSocketId, offer });
+    console.log('[WebRTC] Offer sent to', viewerSocketId);
+  } catch (e) {
+    console.error('[WebRTC] Offer failed', e);
+  }
+}
+
+// â”€â”€ WebRTC host binding (only run once per SocketController instance) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let _webrtcBound = false;
+
+function _bindWebRTCHost () {
+  if (!netCtrl || !netCtrl.socket) return;
+  if (_webrtcBound) return; // already bound on this socket instance
+  _webrtcBound = true;
+
+  netCtrl.socket.on('viewer:joined', ({ socketId }) => {
+    console.log('[WebRTC] Viewer joined:', socketId);
+    _offerViewer(socketId);
+  });
+
+  netCtrl.socket.on('webrtc:answer', async ({ from, answer }) => {
+    const pc = _peers[from];
+    if (!pc) return;
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    } catch (e) { console.error('[WebRTC] setRemoteDescription failed', e); }
+  });
+
+  netCtrl.socket.on('webrtc:ice', async ({ from, candidate }) => {
+    const pc = _peers[from];
+    if (pc && candidate) {
+      try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch (_) {}
+    }
+  });
+}
+
+// Determine room from URL param or use default "main"
+const _urlParams = new URLSearchParams(location.search);
+const DEFAULT_ROOM = _urlParams.get('room') || 'main';
+
+function escHtml (str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _ctrlUrl (roomId) {
+  return `${location.origin}/viewer.html?room=${encodeURIComponent(roomId)}`;
+}
+
+// â”€â”€ Auto-join room on page load â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function joinRoom (roomId, name) {
+  if (netCtrl) { netCtrl.disconnect(); }
+  _webrtcBound = false; // reset so _bindWebRTCHost re-registers on the new socket
+
+  $('room-status-text').textContent = `Conectando à sala "${roomId}"…`;
+  $('ctrl-url').textContent = 'aguardando…';
+
+  netCtrl = new SocketController(roomId, name);
+  netCtrl.connect();
+  _bindWebRTCHost();
+
+  netCtrl.on('roomUpdated', info => _renderPlayerList(info.players));
+  netCtrl.on('chat',  msg  => _appendChat(msg.from, msg.text));
+  netCtrl.on('disconnected', () => {
+    $('room-status-text').textContent = 'Desconectado — reconectando automaticamente…';
+    // Do NOT call joinRoom() here â€” Socket.IO auto-reconnects and
+    // the 'connect' event re-sends room:join automatically.
+    // Calling joinRoom() would create a new socket and trigger a loop.
+  });
+  netCtrl.on('joined', ({ slot, isHost, roomId }) => {
+    // This fires on both initial join AND after every auto-reconnect
+    $('room-badge').textContent = `Sala: ${roomId}  |  Jogador ${slot}${isHost ? ' (Host)' : ''}`;
+    $('room-badge').className   = 'badge connected';
+    $('room-status-text').textContent = `Conectado — Jogador ${slot}`;
+    const url = _ctrlUrl(roomId);
+    $('ctrl-url').textContent = url;
+    if (netCtrl) netCtrl.setEmulatorReady(ejsLoaded);
+  });
+}
+
+// â”€â”€ Rename button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+$('btn-rename').addEventListener('click', () => {
+  const name = $('player-name').value.trim() || 'Player 1';
+  joinRoom(DEFAULT_ROOM, name);
+});
+
+// â”€â”€ Copy controller URL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+$('btn-copy-url').addEventListener('click', () => {
+  const url = $('ctrl-url').textContent;
+  if (!url || url === 'aguardando…') return;
+  navigator.clipboard.writeText(url)
+    .then(() => { $('btn-copy-url').innerHTML = '<span class="material-icons">task_alt</span> Copiado!'; setTimeout(() => { $('btn-copy-url').innerHTML = '<span class="material-icons">content_copy</span> Copiar link'; }, 2000); })
+    .catch(() => prompt('Copie o link:', url));
+});
+
+// â”€â”€ EmulatorJS bootstrap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function launchEmulator (gameUrl, gameName) {
+  if (ejsLoaded) {
+    if (!confirm('A ROM is already loaded. Reload the page to switch ROM?')) return;
+    location.reload();
+    return;
+  }
+  ejsLoaded = true;
+
+  $('game-placeholder').style.display = 'none';
+
+  window.EJS_player           = '#game';
+  window.EJS_core             = 'snes';
+  window.EJS_gameUrl          = gameUrl;
+  window.EJS_gameName         = gameName || 'game';
+  window.EJS_pathtodata       = 'https://cdn.emulatorjs.org/stable/data/';
+  window.EJS_color            = '#e94560';
+  window.EJS_multitap         = true;
+  window.EJS_hideSettings   = true;
+  window.EJS_contextMenuEnabled = false;
+  window.EJS_menuBarEnabled   = false;
+  window.EJS_volume           = 1;
+  window.EJS_startOnLoaded    = true;   // skip 'press start' splash
+  window.EJS_backgroundColor  = '#000';
+
+  window.EJS_onGameStart = function () {
+    $('rom-status').textContent = 'Running';
+
+    // Forcefully hide the EJS UI toolbar at runtime (belt-and-braces over CSS)
+    const hide = document.createElement('style');
+    hide.textContent =
+      '#game .ejs_menu, #game .ejs_start_button, #game .ejs_settings, ' +
+      '#ejs_context_menu, .ejs_context_menu, #ejs_menu_bar, .ejs_menu_bar { display:none!important }' +
+      '#game .ejs_container { padding:0!important }';
+    document.head.appendChild(hide);
+
+    if (netCtrl) {
+      netCtrl.setEmulatorReady(true);
+      netCtrl.setRom(window.EJS_gameName || '');
+    }
+    // Give EmulatorJS a moment to paint the first frame, then capture & offer
+    setTimeout(() => {
+      _captureCanvasStream();
+      const pending = _pendingViewers.splice(0);
+      pending.forEach(id => _offerViewer(id));
+    }, 800);
+  };
+
+  const s = document.createElement('script');
+  s.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+  document.body.appendChild(s);
+}
+
+// ── ROM Modal open/close ─────────────────────────────────────────────────────
+function openRomModal () { $('rom-modal').style.display = 'flex'; _loadRomGrid(); }
+function closeRomModal () { $('rom-modal').style.display = 'none'; }
+
+$('btn-open-rom-modal').addEventListener('click', openRomModal);
+$('btn-placeholder-rom').addEventListener('click', openRomModal);
+$('btn-close-rom-modal').addEventListener('click', closeRomModal);
+$('rom-modal').addEventListener('click', e => { if (e.target === $('rom-modal')) closeRomModal(); });
+
+// ── Modal tab switching ──────────────────────────────────────────────────────
+document.querySelectorAll('.rom-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.rom-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.rom-tab-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    $('rom-tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ── ROM: biblioteca ──────────────────────────────────────────────────────────
+const ROM_ART = ['\uD83C\uDFAE','\uD83D\uDC7E','\u2B50','\uD83C\uDFC6','\uD83C\uDF1F','\uD83D\uDD25','\uD83D\uDC8E','\uD83C\uDFAF','\uD83C\uDF08','\u26A1'];
+
+function _loadRomGrid () {
+  $('rom-grid').innerHTML = '<div class="rom-grid-empty"><span style="font-size:2rem">\u23F3</span>Carregando\u2026</div>';
+  fetch('/api/roms').then(r => r.json()).then(_renderRomGrid).catch(() => {
+    $('rom-grid').innerHTML = '<div class="rom-grid-empty"><span>\u26a0\ufe0f</span>Erro ao carregar ROMs</div>';
+  });
+}
+
+function _renderRomGrid (list) {
+  const grid = $('rom-grid');
+  if (!list || !list.length) {
+    grid.innerHTML = '<div class="rom-grid-empty"><span style="font-size:2.5rem">\uD83D\uDCC2</span><br/>Nenhuma ROM no servidor.<br/>Use a aba \u2B06 Upload para adicionar jogos.</div>';
+    return;
+  }
+  grid.innerHTML = list.map((r, i) => {
+    const emoji   = ROM_ART[i % ROM_ART.length];
+    const display = escHtml(r.displayName || r.name.replace(/^\d+_/, '').replace(/\.[^.]+$/, ''));
+    return `
+      <div class="rom-card" data-url="${escHtml(r.url)}" data-name="${escHtml(r.displayName || r.name)}">
+        <div class="rom-card-art">${emoji}</div>
+        <div class="rom-card-info">
+          <div class="rom-card-name" title="${display}">${display}</div>
+          <button class="rom-card-play">&#9654; Jogar</button>
+        </div>
+      </div>`;
+  }).join('');
+  grid.querySelectorAll('.rom-card').forEach(card => {
+    const launch = () => {
+      $('rom-status').textContent = '\u23F3 Carregando ' + card.dataset.name + '\u2026';
+      closeRomModal();
+      launchEmulator(card.dataset.url, card.dataset.name);
+    };
+    card.querySelector('.rom-card-play').addEventListener('click', e => { e.stopPropagation(); launch(); });
+    card.addEventListener('click', launch);
+  });
+}
+
+function _renderRomList (list) { _renderRomGrid(list); }
+
+// ── ROM: arquivo local ───────────────────────────────────────────────────────
+$('rom-file').addEventListener('change', () => {
+  const file = $('rom-file').files[0];
+  if (!file) return;
+  $('local-file-info').textContent = file.name;
+  $('local-file-info').style.display = 'block';
+  $('btn-load-local').style.display = 'inline-block';
+});
+
+$('btn-load-local').addEventListener('click', () => {
+  const file = $('rom-file').files[0];
+  if (!file) return;
+  if (localBlobUrl) URL.revokeObjectURL(localBlobUrl);
+  localBlobUrl = URL.createObjectURL(file);
+  const displayName = file.name.replace(/\.[^.]+$/, '').replace(/^\d+_/, '');
+  $('rom-status').textContent = '\u23F3 Carregando ' + displayName + '\u2026';
+  closeRomModal();
+  launchEmulator(localBlobUrl, displayName);
+});
+
+const _dz = $('drop-zone');
+if (_dz) {
+  ['dragenter','dragover'].forEach(ev => _dz.addEventListener(ev, e => { e.preventDefault(); _dz.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(ev => _dz.addEventListener(ev, e => { e.preventDefault(); _dz.classList.remove('drag-over'); }));
+  _dz.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0]; if (!file) return;
+    try { const dt = new DataTransfer(); dt.items.add(file); $('rom-file').files = dt.files; $('rom-file').dispatchEvent(new Event('change')); } catch(err) {}
+  });
+}
+
+// ── ROM: upload ao servidor ──────────────────────────────────────────────────
+$('rom-file-upload').addEventListener('change', () => {
+  const file = $('rom-file-upload').files[0];
+  if (!file) return;
+  $('upload-file-info').textContent = file.name;
+  $('upload-file-info').style.display = 'block';
+  $('btn-upload-rom').style.display = 'inline-block';
+});
+
+$('btn-upload-rom').addEventListener('click', async () => {
+  const file = $('rom-file-upload').files[0];
+  if (!file) return;
+  $('rom-status-msg').textContent = '\u23F3 Enviando\u2026';
+  $('btn-upload-rom').disabled = true;
+  try {
+    const form = new FormData();
+    form.append('rom', file);
+    const res  = await fetch('/api/upload', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    $('rom-status-msg').textContent = '\u2705 Enviado!';
+    $('rom-status').textContent = '\u2705 ' + (data.name || '');
+    document.querySelector('.rom-tab[data-tab="library"]').click();
+    _loadRomGrid();
+  } catch (e) {
+    $('rom-status-msg').textContent = '\u274C ' + e.message;
+  } finally {
+    $('btn-upload-rom').disabled = false;
+  }
+});
+
+$('chat-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const text = $('chat-input').value.trim();
+  if (!text || !netCtrl) return;
+  netCtrl.sendChat(text);
+  $('chat-input').value = '';
+});
+
+function _appendChat (from, text) {
+  const log = $('chat-log');
+  const div = document.createElement('div');
+  div.innerHTML = `<b>${escHtml(from)}:</b> ${escHtml(text)}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// â”€â”€ Player list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function _renderPlayerList (players) {
+  $('player-count').textContent = `${players.length} / 4`;
+  $('player-list').innerHTML = players.map(p =>
+    `<li class="player-item">
+      <span class="slot-badge p${p.slot}">P${p.slot}</span>
+      ${escHtml(p.name)}
+    </li>`
+  ).join('');
+}
+
+// â”€â”€ Init: auto-join default room â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+joinRoom(DEFAULT_ROOM, $('player-name').value.trim() || 'Player 1');
+
+// ── Host keyboard config ──────────────────────────────────────────────────────
+const DEFAULT_KEYS = {
+  UP: 'ArrowUp', DOWN: 'ArrowDown', LEFT: 'ArrowLeft', RIGHT: 'ArrowRight',
+  B: 'z', A: 'x', Y: 'a', X: 's', L: 'q', R: 'w',
+  START: 'Enter', SELECT: 'Tab',
+};
+const BTN_INDEX = { B:0, Y:1, SELECT:2, START:3, UP:4, DOWN:5, LEFT:6, RIGHT:7, A:8, X:9, L:10, R:11 };
+
+function _loadKeyCfg() {
+  try { const s = localStorage.getItem('snes_keys'); return s ? JSON.parse(s) : { ...DEFAULT_KEYS }; }
+  catch { return { ...DEFAULT_KEYS }; }
+}
+function _saveKeyCfg(cfg) { localStorage.setItem('snes_keys', JSON.stringify(cfg)); }
+function _buildKeyMap(cfg) {
+  const map = {};
+  for (const [btn, key] of Object.entries(cfg)) {
+    map[key] = btn;
+    if (key.length === 1) { map[key.toLowerCase()] = btn; map[key.toUpperCase()] = btn; }
+  }
+  return map;
+}
+function _keyLabel(key) {
+  const m = { ArrowUp:'↑', ArrowDown:'↓', ArrowLeft:'←', ArrowRight:'→', Enter:'Enter', Tab:'Tab', ' ':'Space', Escape:'Esc', Backspace:'⌫', Shift:'Shift', Control:'Ctrl', Alt:'Alt' };
+  return m[key] || (key.length === 1 ? key.toUpperCase() : key);
+}
+
+let _keyCfg = _loadKeyCfg();
+let KEY_MAP  = _buildKeyMap(_keyCfg);
+
+const KB_GROUPS = [
+  { label: 'D-Pad',    btns: ['UP','DOWN','LEFT','RIGHT'] },
+  { label: 'Botões',   btns: ['B','A','Y','X'] },
+  { label: 'Ombros',   btns: ['L','R'] },
+  { label: 'Especiais',btns: ['START','SELECT'] },
+];
+const SNES_LABEL = {
+  UP:'Cima', DOWN:'Baixo', LEFT:'Esq', RIGHT:'Dir',
+  B:'<span class="kb-btn-badge btn-b">B</span>',
+  A:'<span class="kb-btn-badge btn-a">A</span>',
+  Y:'<span class="kb-btn-badge btn-y">Y</span>',
+  X:'<span class="kb-btn-badge btn-x">X</span>',
+  L:'<span class="kb-btn-badge btn-lr">L</span>',
+  R:'<span class="kb-btn-badge btn-lr">R</span>',
+  START:'START', SELECT:'SELECT',
+};
+
+function _renderKbDisplay() {
+  const el = document.getElementById('kb-bindings-display');
+  if (!el) return;
+  const cols = 2;
+  el.innerHTML = KB_GROUPS.map((g, gi) => {
+    const classes = ['kb-section'];
+    if (gi % cols === 0) classes.push('kb-section-left');
+    if (gi >= KB_GROUPS.length - cols) classes.push('kb-section-last');
+    return `<div class="${classes.join(' ')}">
+      <div class="kb-group-label">${g.label}</div>
+      ${g.btns.map(btn =>
+        `<div class="kb-row"><kbd>${_keyLabel(_keyCfg[btn])}</kbd><div class="kb-mapping">→ ${SNES_LABEL[btn]}</div></div>`
+      ).join('')}
+    </div>`;
+  }).join('');
+  // update SVG hints for face buttons
+  ['A','B','X','Y'].forEach(btn => {
+    const t = document.getElementById('svg-hint-' + btn);
+    if (t) t.textContent = _keyLabel(_keyCfg[btn]);
+  });
+}
+
+let _capturingBtn = null;
+function _openKeysModal() {
+  _renderKeysList();
+  document.getElementById('keys-modal-backdrop').classList.add('open');
+}
+function _closeKeysModal() {
+  _capturingBtn = null;
+  document.getElementById('keys-modal-backdrop').classList.remove('open');
+}
+function _renderKeysList() {
+  const ORDER = ['UP','DOWN','LEFT','RIGHT','B','A','Y','X','L','R','START','SELECT'];
+  const BTN_BADGE = {
+    B:'<span class="kb-btn-badge btn-b">B</span>', A:'<span class="kb-btn-badge btn-a">A</span>',
+    Y:'<span class="kb-btn-badge btn-y">Y</span>', X:'<span class="kb-btn-badge btn-x">X</span>',
+    L:'<span class="kb-btn-badge btn-lr">L</span>', R:'<span class="kb-btn-badge btn-lr">R</span>',
+  };
+  const LBL = { UP:'↑ Cima', DOWN:'↓ Baixo', LEFT:'← Esq', RIGHT:'→ Dir', START:'START', SELECT:'SELECT' };
+  document.getElementById('keys-list').innerHTML = ORDER.map(btn =>
+    `<div class="keys-row" data-btn="${btn}" id="krow-${btn}">
+      <div class="keys-btn-name">${BTN_BADGE[btn] || ''}<span>${LBL[btn] || btn}</span></div>
+      <kbd id="kchip-${btn}">${_keyLabel(_keyCfg[btn])}</kbd>
+    </div>`
+  ).join('');
+  const list = document.getElementById('keys-list');
+  list._clickHandler && list.removeEventListener('click', list._clickHandler);
+  list._clickHandler = e => {
+    const row = e.target.closest('.keys-row');
+    if (!row) return;
+    if (_capturingBtn) {
+      const p = document.getElementById('krow-' + _capturingBtn);
+      if (p) p.classList.remove('capturing');
+      const pc = document.getElementById('kchip-' + _capturingBtn);
+      if (pc) pc.textContent = _keyLabel(_keyCfg[_capturingBtn]);
+    }
+    _capturingBtn = row.dataset.btn;
+    row.classList.add('capturing');
+    const chip = document.getElementById('kchip-' + _capturingBtn);
+    if (chip) chip.textContent = '…';
+  };
+  list.addEventListener('click', list._clickHandler);
+}
+
+// Capture mode – remapping keystroke (capture phase, fires before game input)
+document.addEventListener('keydown', e => {
+  if (!_capturingBtn) return;
+  if (e.key === 'Escape') { _closeKeysModal(); e.preventDefault(); e.stopImmediatePropagation(); return; }
+  _keyCfg[_capturingBtn] = e.key;
+  _saveKeyCfg(_keyCfg);
+  KEY_MAP = _buildKeyMap(_keyCfg);
+  const row = document.getElementById('krow-' + _capturingBtn);
+  const chip = document.getElementById('kchip-' + _capturingBtn);
+  if (row) row.classList.remove('capturing');
+  if (chip) chip.textContent = _keyLabel(e.key);
+  _capturingBtn = null;
+  _renderKbDisplay();
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, true);
+
+$('btn-config-keys').addEventListener('click', e => { e.stopPropagation(); _openKeysModal(); });
+$('keys-modal-close').addEventListener('click', _closeKeysModal);
+$('keys-modal-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) _closeKeysModal(); });
+$('btn-keys-reset').addEventListener('click', () => {
+  _keyCfg = { ...DEFAULT_KEYS };
+  _saveKeyCfg(_keyCfg);
+  KEY_MAP = _buildKeyMap(_keyCfg);
+  _renderKeysList();
+  _renderKbDisplay();
+});
+
+_renderKbDisplay();
+
+// ── Host P1 keyboard → EmulatorJS ─────────────────────────────────────────────
+const _keysDown = new Set();
+document.addEventListener('keydown', e => {
+  if (_capturingBtn) return;
+  const btn = KEY_MAP[e.key];
+  if (!btn || _keysDown.has(e.key)) return;
+  _keysDown.add(e.key);
+  const ejs = window.EJS_emulator;
+  if (ejs && ejsLoaded) {
+    try { ejs.gameManager.simulateInput(0, BTN_INDEX[btn], 1); } catch (_) {}
+  }
+  if (['Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+});
+document.addEventListener('keyup', e => {
+  const btn = KEY_MAP[e.key];
+  if (!btn) return;
+  _keysDown.delete(e.key);
+  const ejs = window.EJS_emulator;
+  if (ejs && ejsLoaded) {
+    try { ejs.gameManager.simulateInput(0, BTN_INDEX[btn], 0); } catch (_) {}
+  }
+});
+
+// ── Sidebar toggle ────────────────────────────────────────────────────────────
+document.getElementById('btn-sidebar').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+});
+['btn-close-sidebar','sidebar-overlay'].forEach(function(id) {
+  document.getElementById(id).addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
